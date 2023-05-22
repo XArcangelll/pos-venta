@@ -18,12 +18,20 @@
                 </footer>
             </div>
         </div>
+        <script src="<?php echo constant("URL")?>Assets/js/jquery.js" crossorigin="anonymous"></script>
         <script src="<?php echo constant("URL")?>Assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
         <script src="<?php echo constant("URL")?>Assets/js/scripts.js"></script>
         <!--<script src="<?php echo constant("URL")?>Assets/js/Chart.min.js" crossorigin="anonymous"></script>
         <script src="<?php echo constant("URL")?>Assets/demo/chart-area-demo.js"></script>
         <script src="<?php echo constant("URL")?>Assets/demo/chart-bar-demo.js"></script> -->
+       
         <script src="<?php echo constant("URL")?>Assets/js/simple-datatables.min.js" crossorigin="anonymous"></script>
+        <script src="<?php echo constant("URL")?>Assets/js/dataTables.js" crossorigin="anonymous"></script>
         <script src="<?php echo constant("URL")?>Assets/js/datatables-simple-demo.js"></script>
+        <script>
+            const base_url = "<?php echo constant("URL")?>";
+        </script>
+        <script src="<?php echo constant("URL")?>Assets/js/sweetalert2.js"></script>
+        <script src="<?php echo constant("URL")?>Assets/js/funciones.js"></script>
     </body>
 </html>

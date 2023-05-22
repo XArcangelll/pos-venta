@@ -10,6 +10,8 @@
         
         <link href="<?php echo constant("URL")?>Assets/css/style.min.css" rel="stylesheet" />
         <link href="<?php echo constant("URL")?>Assets/css/styles.css" rel="stylesheet" />
+        <link href="<?php echo constant("URL")?>Assets/css/dataTables.css" rel="stylesheet" />
+        
      <script src="<?php echo constant("URL")?>Assets/js/all.js" crossorigin="anonymous"></script>
     </head>
     <body class="sb-nav-fixed">
