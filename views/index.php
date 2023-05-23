@@ -68,6 +68,7 @@
         <script>
             const base_url = "<?php echo constant("URL")?>";
         </script>
+          <script src="<?php echo constant("URL")?>Assets/js/sweetalert2.js"></script>
         <script src="<?php echo constant("URL")?>Assets/js/funciones.js"></script>
     </body>
 </html>

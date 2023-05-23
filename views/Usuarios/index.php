@@ -1,6 +1,10 @@
 <?php
 
-include "Views/Templates/header.php"; ?>
+include "Views/Templates/header.php"; 
+
+
+?>
+
 
 
 <ol class="breadcrumb mb-4">
@@ -8,7 +12,7 @@ include "Views/Templates/header.php"; ?>
 </ol>
 
 
-<button class="btn btn-primary mb-2 " data-bs-toggle="modal" data-bs-target="#nuevo_usuario" onclick="btnNuevoUser();" type="button">Nuevo</button>
+<button class="btn btn-primary mb-2 " data-bs-toggle="modal" data-bs-target="#nuevo_usuario" onclick="btnNuevoUser();" type="button">Nuevo <i class="fas fa-plus"></i></button>
 <table class="table table-borderless text-center pt-2" id="tblUsuarios" width="100%">
     <thead class="table-dark">
         <tr>
@@ -28,9 +32,9 @@ include "Views/Templates/header.php"; ?>
 <div id="nuevo_usuario" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="my-modal-title"></h5>
-                <button class="close" id="cerrarForm" data-bs-dismiss="modal" onclick="cerrarForm();" aria-label="Close">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white" id="my-modal-title"></h5>
+                <button class="close" id="cerrarForm" data-bs-dismiss="modal" onclick="cerrarFormUser(event);" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -71,6 +75,7 @@ include "Views/Templates/header.php"; ?>
                     </div>
 
                     <button class="btn btn-primary m-2" type="button" id="btnAccion" onclick="registrarUser(event)">Registrar</button>
+                    <button class="btn btn-danger m-2" type="button" data-bs-dismiss="modal" onclick="cerrarFormUser(event);">Cerrar</button>
                 </form>
             </div>
         </div>

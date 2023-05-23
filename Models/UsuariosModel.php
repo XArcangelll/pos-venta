@@ -1,8 +1,8 @@
 <?php
 
 class UsuariosModel extends Query
-{       
-        private $usuario, $nombre, $clave, $id_caja,$id;
+{
+        private $usuario, $nombre, $clave, $id_caja, $id,$estado;
 
         public function __construct()
         {
@@ -33,8 +33,9 @@ class UsuariosModel extends Query
 
         public function getUsuarioId(int $id)
         {
-                $sql = "SELECT * FROM usuarios where id = $id and estado = 1";
+                $sql = "SELECT * FROM usuarios where id = $id";
                 $data = $this->select($sql);
+
                 return $data;
         }
 
@@ -54,19 +55,19 @@ class UsuariosModel extends Query
                 $this->id_caja = $id_caja;
                 $verificar = "SELECT * FROM usuarios where usuario = '$this->usuario'";
                 $existe = $this->select($verificar);
-                if(empty($existe)){
-                $sql = "INSERT INTO usuarios(usuario,nombre,clave,id_caja) VALUES(?,?,?,?)";
-                $datos = array($this->usuario,$this->nombre,$this->clave,$this->id_caja);
-                $data =  $this->save($sql,$datos);
-                if($data == 1){
-                        $res = "ok";
-                }else{
-                        $res = "error";
-                }
-                }else{
+                if (empty($existe)) {
+                        $sql = "INSERT INTO usuarios(usuario,nombre,clave,id_caja) VALUES(?,?,?,?)";
+                        $datos = array($this->usuario, $this->nombre, $this->clave, $this->id_caja);
+                        $data =  $this->save($sql, $datos);
+                        if ($data == 1) {
+                                $res = "ok";
+                        } else {
+                                $res = "error";
+                        }
+                } else {
                         $res = "existe";
                 }
-                
+
 
                 return $res;
         }
@@ -79,26 +80,40 @@ class UsuariosModel extends Query
                 $this->id_caja = $id_caja;
                 $verificar = "SELECT * FROM usuarios where usuario = '$this->usuario' and id != $this->id";
                 $existe = $this->select($verificar);
-                if(empty($existe)){
-                $sql = "UPDATE usuarios SET usuario = ?, nombre = ?, id_caja = ? WHERE id = ?";
-                $datos = array($this->usuario,$this->nombre,$this->id_caja,$this->id);
-                $data =  $this->save($sql,$datos);
-                if($data == 1){
-                        $res = "modificado";
-                }else{
-                        $res = "error";
-                } }else{
+                if (empty($existe)) {
+                        $sql = "UPDATE usuarios SET usuario = ?, nombre = ?, id_caja = ? WHERE id = ?";
+                        $datos = array($this->usuario, $this->nombre, $this->id_caja, $this->id);
+                        $data =  $this->save($sql, $datos);
+                        if ($data == 1) {
+                                $res = "modificado";
+                        } else {
+                                $res = "error";
+                        }
+                } else {
                         $res = "existe";
                 }
-              
-                
+
+
 
                 return $res;
         }
 
-        public function editarUser(int $id){
-                $sql = "SELECT * FROM usuarios WHERE id = $id";
+        public function editarUser(int $id)
+        {
+                $sql = "SELECT * FROM usuarios WHERE id = $id and estado = 1";
                 $data = $this->select($sql);
                 return $data;
         }
+
+        public function accionUser(int $estado, int $id)
+        {
+                $this->id = $id;
+                $this->estado = $estado;
+                $sql = "UPDATE usuarios set estado = ? WHERE id = ? ";
+                $datos = array($this->estado,$this->id);
+                $data = $this->save($sql,$datos);
+                return $data;
+        }
+
+       
 }

@@ -5,12 +5,16 @@ class Usuarios extends Controller
     public function __construct()
     {
         session_start();
+
         parent::__construct();
     }
 
 
     public function index()
     {
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }
         $data['cajas'] =  $this->model->getCajas();
         $this->views->getView($this, "index", $data);
     }
@@ -22,10 +26,19 @@ class Usuarios extends Controller
         for ($i = 0; $i < count($data); $i++) {
             if ($data[$i]['estado'] == 1) {
                 $data[$i]['estado'] = ' <h5><span class="badge bg-success">Activo</span></h5>';
+                $data[$i]['acciones'] =  '<div>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#nuevo_usuario" onclick="btnEditarUser(' . $data[$i]["id"] . ');" class="btn btn-primary mx-2" ><i class="fas fa-edit"></i></button>
+                <button type="button" onclick="btnEliminarUser(' . $data[$i]["id"] . ');" class="btn btn-danger" ><i class="fas fa-trash"></i></button>
+                <button type="button"  class="btn btn-secondary disabled" ><i class="fa fa-rotate"></i></button>
+                </div>';
             } else {
                 $data[$i]['estado'] = '<h5><span class="badge bg-danger">Inactivo</span></h5>';
+                $data[$i]['acciones'] =  '<div>
+                <button type="button"   class="btn btn-secondary mx-2 " disabled><i class="fas fa-edit"></i></button>
+                <button type="button"  class="btn btn-secondary disabled" ><i class="fas fa-trash"></i></button>
+                <button type="button" onclick="btnReingresarUser(' . $data[$i]["id"] . ');" class="btn btn-success" ><i class="fa fa-rotate"></i></button>
+                </div>';
             }
-            $data[$i]['acciones'] =  '<div><button type="button" data-bs-toggle="modal" data-bs-target="#nuevo_usuario" onclick="btnEditarUser(' . $data[$i]["id"] . ');" class="btn btn-primary mx-2" >Editar</button><button type="button"  class="btn btn-danger" >Eliminar</button></div>';
         }
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
@@ -44,6 +57,7 @@ class Usuarios extends Controller
                 $_SESSION["id_usuario"] = $data["id"];
                 $_SESSION["usuario"] = $data["usuario"];
                 $_SESSION["nombre"] = $data["nombre"];
+                $_SESSION["activo"] = true;
                 $msg = "ok";
             } else {
                 $msg = "Usuario y/o Contraseña incorrectos";
@@ -89,9 +103,9 @@ class Usuarios extends Controller
                     }
                 } else {
 
-                    if(!is_numeric($id)) {
+                    if (!is_numeric($id)) {
                         $msg = "El ID Usuario no es entero";
-                    }else{
+                    } else {
                         $validarUsuario = $this->model->getUsuarioId($id);
                         if ($validarUsuario) {
                             $data =  $this->model->modificarUsuario($usuario, $nombre, $caja, $id);
@@ -106,8 +120,6 @@ class Usuarios extends Controller
                             $msg = "No modifique el ID Usuario";
                         }
                     }
-
-                   
                 }
             } else {
                 $msg = "No modifique el id Caja";
@@ -123,5 +135,52 @@ class Usuarios extends Controller
         $data = $this->model->editarUser($id);
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
+    }
+
+    public function eliminar($id)
+    {
+        if (!is_numeric($id)) {
+            $msg = "El ID Usuario no es entero";
+        } else {
+            $validarUsuario = $this->model->getUsuarioId($id);
+            if ($validarUsuario) {
+                $data = $this->model->accionUser(0, $id);
+                if ($data == 1) {
+                    $msg = "ok";
+                } else {
+                    $msg = "Error al eliminar el Usuario";
+                }
+            } else {
+                $msg = "El ID del usuario no existe";
+            }
+        }
+        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function reingresar($id)
+    {
+        if (!is_numeric($id)) {
+            $msg = "El ID Usuario no es entero";
+        } else {
+            $validarUsuario = $this->model->getUsuarioId($id);
+            if ($validarUsuario) {
+                $data = $this->model->accionUser(1, $id);
+                if ($data == 1) {
+                    $msg = "ok";
+                } else {
+                    $msg = "Error al reingresar el Usuario";
+                }
+            } else {
+                $msg = "El ID del usuario no existe";
+            }
+        }
+        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function salir(){
+        session_destroy();
+        header("location: ".constant("URL"));
     }
 }
