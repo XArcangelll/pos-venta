@@ -60,7 +60,7 @@ include "Views/Templates/header.php";
                         <textarea id="direccion"  style="overflow:auto;resize:none"  class="form-control" type="text" name="direccion" placeholder="Dirección"></textarea>
                     </div>
                     <button class="btn btn-primary m-2" type="button" id="btnAccion" onclick="registrarCliente(event)">Registrar</button>
-                    <button class="btn btn-danger m-2" type="button" data-bs-dismiss="modal" onclick="cerrarFormCliente(event);">Cerrar</button>
+                    <button class="btn btn-danger m-2" type="button" data-bs-dismiss="modal" onclick="cerrarFormCliente(event);">Cancelar</button>
                 </form>
             </div>
         </div>

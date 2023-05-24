@@ -37,19 +37,31 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon"><i class="fas fa-tools"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-tools text-primary"></i></div>
                                Configuración
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down text-primary"></i></div>
                             </a>
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="<?php echo constant("URL") ?>Usuarios"><i class="fas fa-user me-2"></i>Usuarios</a>
-                                    <a class="nav-link" href="layout-sidenav-light.html"><i class="fas fa-box me-2"></i>Cajas</a>
+                                    <a class="nav-link" href="<?php echo constant("URL") ?>Usuarios"><i class="fas fa-user me-2 text-primary"></i>Usuarios</a>
+                                    <a class="nav-link" href="<?php echo constant("URL") ?>Cajas"><i class="fas fa-box me-2 text-primary"></i>Cajas</a>
                                 </nav>
                             </div>
                             <a class="nav-link" href="<?php echo constant("URL")?>Clientes">
-                                <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-users text-primary"></i></div>
                                Clientes
+                            </a>
+                            <a class="nav-link" href="<?php echo constant("URL")?>Categorias">
+                                <div class="sb-nav-link-icon"><i class="fa fa-clipboard text-primary"></i></div>
+                               Categorías
+                            </a>
+                            <a class="nav-link" href="<?php echo constant("URL")?>Medidas">
+                                <div class="sb-nav-link-icon"><i class="fa fa-ruler text-primary"></i></div>
+                               Medidas
+                            </a>
+                            <a class="nav-link" href="<?php echo constant("URL")?>Productos">
+                                <div class="sb-nav-link-icon"><i class="fa fa-bag-shopping text-primary"></i></div>
+                               Productos
                             </a>
                         </div>
                     </div>
