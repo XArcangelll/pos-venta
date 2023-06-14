@@ -4,6 +4,9 @@ let tblCajas;
 let tblCategorias;
 let tblMedidas;
 let tblProductos;
+let tblHistorialCompra;
+let tblHistorialVenta;
+let tblProductosModal;
 document.addEventListener("DOMContentLoaded", function () {
   listarUsuarios();
   listarClientes();
@@ -11,6 +14,12 @@ document.addEventListener("DOMContentLoaded", function () {
   listarCategorias();
   listarMedidas();
   listarProductos();
+  PreviewFoto();
+  borrarFoto();
+  cargarDetalle();
+  cargarDetalleVenta();
+  listarHistorialCompras();
+  listarHistorialVentas();
 });
 function frmLogin(e) {
   e.preventDefault();
@@ -1085,6 +1094,27 @@ function listarProductos() {
         url: base_url + "Productos/listar",
         dataSrc: "",
       },
+      
+      dom: "<'row'<'col-md-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-md-7'p>>"
+      ,
+      buttons: [
+        {
+          extend: 'excelHtml5',
+          footer: true,
+          title: 'Archivo',
+          filename: 'Export_file',
+          text: '<span class="btn btn-success"><i class="fas fa-file-excel"></i></span>'
+        },{
+          extend: 'pdfHtml5',
+          text: '<span class="btn btn-danger"><i class="fas fa-file-pdf"></i></span>',
+        },
+        {
+          extend: 'colvis',
+          text: '<span class="btn btn-info"><i class="fas fa-table-columns"></i></span>',
+        }
+      ],
       columns: [
         {
           data: "id",
@@ -1096,7 +1126,7 @@ function listarProductos() {
           data: "descripcion",
         },
         {
-          data: "precio_compra",
+          data: "foto",
         },
         {
           data: "precio_venta",
@@ -1124,6 +1154,23 @@ function listarProductos() {
 function cerrarFormProducto(e) {
   e.preventDefault();
   document.getElementById("frmProducto").reset();
+  if (document.getElementById("img")) {
+    document.getElementById("img").remove();
+  }
+  document
+    .getElementsByClassName("prevPhoto")[0]
+    .classList.remove("prevPhoto2");
+  document.getElementsByClassName("delPhoto")[0].classList.add("notBlock");
+  let uploadFoto = document.getElementById("foto").value;
+  uploadFoto = "";
+
+  if (
+    document.getElementById("foto_actual") &&
+    document.getElementById("foto_remove")
+  ) {
+    document.getElementById("foto_actual").remove();
+    document.getElementById("foto_remove").remove();
+  }
 }
 
 function registrarProducto(e) {
@@ -1131,11 +1178,19 @@ function registrarProducto(e) {
   const codigo = document.getElementById("codigo");
   const descripcion = document.getElementById("descripcion");
   const precio_compra = document.getElementById("precio_compra");
-  const precio_venta = document.getElementById("precio_venta")
+  const precio_venta = document.getElementById("precio_venta");
   const cantidad = document.getElementById("cantidad");
   const medida = document.getElementById("medida");
   const categoria = document.getElementById("categoria");
-  if (codigo.value == "" || descripcion.value == "" || precio_compra.value == "" || precio_venta.value == "" || cantidad.value == "" || medida.value == "" || categoria.value == "") {
+  if (
+    codigo.value == "" ||
+    descripcion.value == "" ||
+    precio_compra.value == "" ||
+    precio_venta.value == "" ||
+    cantidad.value == "" ||
+    medida.value == "" ||
+    categoria.value == ""
+  ) {
     Swal.fire({
       icon: "error",
       title: "Todos los Campos son obligatorios",
@@ -1185,6 +1240,22 @@ function registrarProducto(e) {
 }
 
 function btnNuevoProducto() {
+  if (
+    document.getElementById("foto_actual") &&
+    document.getElementById("foto_remove")
+  ) {
+    document.getElementById("foto_actual").remove();
+    document.getElementById("foto_remove").remove();
+  }
+  if (document.getElementById("img")) {
+    document.getElementById("img").remove();
+  }
+  let uploadFoto = document.getElementById("foto").value;
+  uploadFoto = "";
+  document.getElementsByClassName("delPhoto")[0].classList.add("notBlock");
+  document
+    .getElementsByClassName("prevPhoto")[0]
+    .classList.remove("prevPhoto2");
   document.getElementById("my-modal-title").innerHTML = "Nuevo Producto";
   document.getElementById("btnAccion").innerHTML = "Registrar";
   document.getElementById("id").value = "";
@@ -1197,9 +1268,9 @@ function btnEditarProducto(id) {
   document.getElementById("btnAccion").innerHTML = "Modificar";
   document.getElementById("codigo").value = "cargando...";
   document.getElementById("descripcion").value = "cargando...";
-  document.getElementById("precio_compra").value = 0.00;
-  document.getElementById("precio_venta").value = 0.00;
-  document.getElementById("cantidad").value = 0.00;
+  document.getElementById("precio_compra").value = 0.0;
+  document.getElementById("precio_venta").value = 0.0;
+  document.getElementById("cantidad").value = 0.0;
 
   const url = base_url + "Productos/editar/" + id;
   const http = new XMLHttpRequest();
@@ -1217,6 +1288,62 @@ function btnEditarProducto(id) {
       document.getElementById("cantidad").value = res.cantidad;
       document.getElementById("medida").value = res.id_medida;
       document.getElementById("categoria").value = res.id_categoria;
+
+      if (
+        document.getElementById("foto_actual") &&
+        document.getElementById("foto_remove")
+      ) {
+        document.getElementById("foto_actual").remove();
+        document.getElementById("foto_remove").remove();
+      }
+
+      let actual = document.createElement("input");
+      actual.setAttribute("type", "hidden");
+      actual.setAttribute("name", "foto_actual");
+      actual.setAttribute("id", "foto_actual");
+      actual.setAttribute("value", res.foto);
+      let remove = document.createElement("input");
+      remove.setAttribute("type", "hidden");
+      remove.setAttribute("name", "foto_remove");
+      remove.setAttribute("id", "foto_remove");
+      remove.setAttribute("value", res.foto);
+      let formulario = document.getElementById("id").parentNode;
+      formulario.insertBefore(actual, document.getElementById("id"));
+      formulario.insertBefore(remove, document.getElementById("id"));
+
+      if (res.foto != "img_producto.png") {
+        if (document.getElementById("img")) {
+          document.getElementById("img").remove();
+        }
+
+        document.getElementById("previo").classList.add("opacidad");
+
+        document
+          .getElementsByClassName("delPhoto")[0]
+          .classList.remove("notBlock");
+        document
+          .getElementsByClassName("prevPhoto")[0]
+          .classList.add("prevPhoto2");
+        document.getElementsByClassName("prevPhoto")[0].innerHTML +=
+          "<img width='100%' height='auto' id='img' src='" +
+          base_url +
+          "Assets/img/" +
+          res.foto +
+          "'>";
+        borrarFoto();
+      } else {
+        if (document.getElementById("img")) {
+          document.getElementById("img").remove();
+        }
+
+        document.getElementById("previo").classList.add("opacidad");
+        document
+          .getElementsByClassName("delPhoto")[0]
+          .classList.add("notBlock");
+        document
+          .getElementsByClassName("prevPhoto")[0]
+          .classList.remove("prevPhoto2");
+      }
     }
   };
 }
@@ -1296,4 +1423,1140 @@ function btnReingresarProducto(id) {
       };
     }
   });
+}
+
+function PreviewFoto() {
+  let fotito = document.getElementById("foto");
+
+  if (fotito) {
+    fotito.addEventListener("change", function () {
+      let uploadFoto = document.getElementById("foto").value;
+      let foto = document.getElementById("foto").files;
+      let nav = window.URL || window.webkitURL;
+
+      if (uploadFoto != "") {
+        let type = foto[0].type;
+        let name = foto[0].name;
+
+        if (
+          type != "image/jpeg" &&
+          type != "image/jpg" &&
+          type != "image/png"
+        ) {
+          if (document.getElementById("img")) {
+            document.getElementById("img").remove();
+          }
+
+          document
+            .getElementsByClassName("delPhoto")[0]
+            .classList.add("notBlock");
+          document.getElementById("foto").value = "";
+          Swal.fire({
+            text: "Formato no válido",
+            icon: "warning",
+          });
+          return false;
+        } else {
+          if (document.getElementById("img")) {
+            document.getElementById("img").remove();
+          }
+
+          document.getElementById("previo").classList.add("opacidad");
+
+          document
+            .getElementsByClassName("delPhoto")[0]
+            .classList.remove("notBlock");
+          document
+            .getElementsByClassName("prevPhoto")[0]
+            .classList.add("prevPhoto2");
+          const objeto_url = nav.createObjectURL(this.files[0]);
+          document.getElementsByClassName("prevPhoto")[0].innerHTML +=
+            "<img width='100%' height='auto' id='img' src=" + objeto_url + ">";
+          borrarFoto();
+        }
+      } else {
+        Swal.fire({
+          title: "No seleccionó Foto",
+        });
+        document.getElementById("img").remove();
+        document
+          .getElementsByClassName("delPhoto")[0]
+          .classList.add("notBlock");
+        document
+          .getElementsByClassName("prevPhoto")[0]
+          .classList.remove("prevPhoto2");
+      }
+    });
+  }
+}
+
+function borrarFoto() {
+  let borrar = document.getElementsByClassName("delPhoto")[0];
+  if (borrar) {
+    borrar.addEventListener("click", function () {
+      Swal.fire({
+        title: "¿Seguro de remover la imagen?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        cancelButtonText: "No",
+        confirmButtonText: "Sí",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById("previo").classList.remove("opacidad");
+          document.getElementById("foto").value = "";
+          document
+            .getElementsByClassName("delPhoto")[0]
+            .classList.add("notBlock");
+          document
+            .getElementsByClassName("prevPhoto")[0]
+            .classList.remove("prevPhoto2");
+          document.getElementById("img").remove();
+
+          if (
+            document.getElementById("foto_actual") &&
+            document.getElementById("foto_remove")
+          ) {
+            document.getElementById("foto_remove").value = "img_producto.png";
+          }
+        }
+      });
+    });
+  }
+}
+
+function buscarCodigo(e) {
+  e.preventDefault();
+  const cod = document.getElementById("codigo").value;
+  const url = base_url + "Compras/buscarCodigo/" + cod;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      if (res) {
+        document.getElementById("id").value = res.id;
+        document.getElementById("nombre").value = res.descripcion;
+        document.getElementById("stock").value = res.cantidad;
+          document.getElementById("cantidad").value = 1;
+          document.getElementById("cantidad").removeAttribute("disabled");
+          document.getElementById("agregar").classList.remove("invisible");
+          document.getElementById("agregar").removeAttribute("disabled");
+        document.getElementById("precio").value = res.precio_compra;
+        document.getElementById("precio_total").value = (
+          res.precio_venta * document.getElementById("cantidad").value
+        ).toFixed(2);
+        document.getElementById("cantidad").focus();
+      } else {
+        document.getElementById("id").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("stock").value = "";
+        document.getElementById("cantidad").value = "";
+        document.getElementById("cantidad").setAttribute("disabled", "");
+        document.getElementById("precio").value = "";
+        document.getElementById("precio_total").value = "";
+        document.getElementById("agregar").classList.add("invisible");
+        document.getElementById("agregar").setAttribute("disabled", "");
+      }
+    }
+  };
+}
+
+function buscarCodigoVenta(e) {
+  e.preventDefault();
+  const cod = document.getElementById("codigo").value;
+  const url = base_url + "Compras/buscarCodigoConStock/" + cod;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      if (res.msg == "ok") {
+        console.log(res.data);
+
+        if(res.data){
+          document.getElementById("id").value = res.data.id;
+          document.getElementById("nombre").value = res.data.descripcion;
+          document.getElementById("stock").value = res.data.cantidad;
+          if( parseInt(res.data.cantidad) == 0){
+            document.getElementById("cantidad").value = 0;
+          }else{
+           
+            let cantidad_temporal;
+            if(res.cantidad_temp != null){
+              cantidad_temporal = parseInt(res.cantidad_temp);
+            }else{
+              cantidad_temporal = 0;
+            }
+            if(cantidad_temporal >=  parseInt(res.data.cantidad)){
+                        
+              document.getElementById("cantidad").value = 0;
+              document.getElementById("cantidad").setAttribute("disabled","");
+              document.getElementById("agregar").classList.add("invisible");
+              document.getElementById("agregar").setAttribute("disabled","");
+            }else{
+              document.getElementById("cantidad").value = 1;
+              document.getElementById("cantidad").removeAttribute("disabled");
+              document.getElementById("agregar").classList.remove("invisible");
+              document.getElementById("agregar").removeAttribute("disabled");
+            }
+          }
+          document.getElementById("precio").value = res.data.precio_venta;
+          document.getElementById("precio_total").value = (
+            res.data.precio_venta * document.getElementById("cantidad").value
+          ).toFixed(2);
+        }else{
+            
+        document.getElementById("id").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("stock").value = "";
+        document.getElementById("cantidad").value = "";
+        document.getElementById("cantidad").setAttribute("disabled", "");
+        document.getElementById("precio").value = "";
+        document.getElementById("precio_total").value = "";
+        document.getElementById("agregar").classList.add("invisible");
+        document.getElementById("agregar").setAttribute("disabled", "");
+        }
+
+       
+      } else {
+        document.getElementById("id").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("stock").value = "";
+        document.getElementById("cantidad").value = "";
+        document.getElementById("cantidad").setAttribute("disabled", "");
+        document.getElementById("precio").value = "";
+        document.getElementById("precio_total").value = "";
+        document.getElementById("agregar").classList.add("invisible");
+        document.getElementById("agregar").setAttribute("disabled", "");
+      }
+    }
+  };
+}
+
+function agregarCodigoProducto(e, codigo) {
+  e.preventDefault();
+  const url = base_url + "Compras/buscarCodigo/" + codigo;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      if (res) {
+        Swal.fire({
+          icon: "success",
+          title: "Producto agregado con éxito",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+        document.getElementById("id").value = res.id;
+        document.getElementById("codigo").value = res.codigo;
+        document.getElementById("nombre").value = res.descripcion;
+        document.getElementById("stock").value = res.cantidad;
+    
+          document.getElementById("cantidad").value = 1;
+          document.getElementById("cantidad").removeAttribute("disabled");
+          document.getElementById("agregar").classList.remove("invisible");
+          document.getElementById("agregar").removeAttribute("disabled");
+      
+        document.getElementById("precio").value = res.precio_compra;
+        document.getElementById("precio_total").value = (
+          res.precio_venta * document.getElementById("cantidad").value
+        ).toFixed(2);
+      } else {
+        document.getElementById("id").value = "";
+        document.getElementById("codigo").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("stock").value = "";
+        document.getElementById("cantidad").value = "";
+        document.getElementById("cantidad").setAttribute("disabled", "");
+        document.getElementById("precio").value = "";
+        document.getElementById("precio_total").value = "";
+        document.getElementById("agregar").classList.add("invisible");
+        document.getElementById("agregar").setAttribute("disabled", "");
+      }
+    }
+  };
+}
+
+
+/*function validacionStockAgregar(id_producto){
+  const urlo = base_url + "Compras/validacionStock/"+ parseInt(id_producto);
+  const httpp = new XMLHttpRequest();
+  httpp.open("GET", urlo, true);
+  httpp.send();
+  httpp.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const reso = JSON.parse(this.responseText);
+      if (reso.msg == "ok") {
+        let cantidad_temporal;
+        if(reso.cantidad_temp != null){
+          cantidad_temporal = parseInt(reso.cantidad_temp);
+        }else{
+          cantidad_temporal = 0;
+        }
+        if(cantidad_temporal >=  parseInt(reso.cantidad)){
+                    
+          document.getElementById("cantidad").value = 0;
+          document.getElementById("cantidad").setAttribute("disabled","");
+          document.getElementById("agregar").classList.add("invisible");
+          document.getElementById("agregar").setAttribute("disabled","");
+        }else{
+          document.getElementById("cantidad").value = 1;
+          document.getElementById("cantidad").removeAttribute("disabled");
+          document.getElementById("agregar").classList.remove("invisible");
+          document.getElementById("agregar").removeAttribute("disabled");
+        }
+
+      }
+    }
+  };
+
+}*/
+
+function agregarCodigoProductoVenta(e, codigo) {
+  e.preventDefault();
+  const url = base_url + "Compras/buscarCodigoConStock/"+codigo;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      if (res) {
+        Swal.fire({
+          icon: "success",
+          title: "Producto agregado con éxito",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+        document.getElementById("id").value = res.data.id;
+        document.getElementById("codigo").value = res.data.codigo;
+        document.getElementById("nombre").value = res.data.descripcion;
+        document.getElementById("stock").value = res.data.cantidad;
+          if( parseInt(res.data.cantidad) == 0){
+            document.getElementById("cantidad").value = 0;
+            document.getElementById("cantidad").setAttribute("disabled", "");
+          }else{
+            let cantidad_temporal;
+            if(res.cantidad_temp != null){
+              cantidad_temporal = parseInt(res.cantidad_temp);
+            }else{
+              cantidad_temporal = 0;
+            }
+            if(cantidad_temporal >=  parseInt(res.data.cantidad)){
+                        
+              document.getElementById("cantidad").value = 0;
+              document.getElementById("cantidad").setAttribute("disabled","");
+              document.getElementById("agregar").classList.add("invisible");
+              document.getElementById("agregar").setAttribute("disabled","");
+            }else{
+              document.getElementById("cantidad").value = 1;
+              document.getElementById("cantidad").removeAttribute("disabled");
+              document.getElementById("agregar").classList.remove("invisible");
+              document.getElementById("agregar").removeAttribute("disabled");
+            }
+          }
+      
+        document.getElementById("precio").value = res.data.precio_venta;
+        document.getElementById("precio_total").value = (
+          res.data.precio_venta * document.getElementById("cantidad").value
+        ).toFixed(2);
+      } else {
+        document.getElementById("id").value = "";
+        document.getElementById("codigo").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("stock").value = "";
+        document.getElementById("cantidad").value = "";
+        document.getElementById("cantidad").setAttribute("disabled", "");
+        document.getElementById("precio").value = "";
+        document.getElementById("precio_total").value = "";
+        document.getElementById("agregar").classList.add("invisible");
+        document.getElementById("agregar").setAttribute("disabled", "");
+      }
+    }
+  };
+}
+
+
+function agregarCodigoCliente(e, id) {
+  e.preventDefault();
+  const url = base_url + "Compras/buscarIdCliente/" + id;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      if (res) {
+        Swal.fire({
+          icon: "success",
+          title: "Cliente seleccionado con éxito",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+        document.getElementById("idcliente").value = res.id;
+        document.getElementById("dni").value = res.dni;
+        document.getElementById("nombrecliente").value = res.nombre;
+        document.getElementById("telefono").value = res.telefono;
+          document.getElementById("direccion").value = res.direccion;
+          document.getElementById("removerCliente").classList.remove("invisible");
+          document.getElementById("removerCliente").removeAttribute("disabled");
+      } else {
+        
+        document.getElementById("idcliente").value = "";
+        document.getElementById("dni").value = "";
+        document.getElementById("nombrecliente").value = "";
+        document.getElementById("telefono").value = "";
+          document.getElementById("direccion").value = "";
+          document.getElementById("removerCliente").classList.add("invisible");
+          document.getElementById("removerCliente").setAttribute("disabled", "");
+      }
+    }
+  };
+}
+
+function removerCliente(e){
+  Swal.fire({
+    icon: "success",
+    title: "Cliente removido con éxito",
+    timer: 1700,
+    showConfirmButton: false,
+  });
+  document.getElementById("idcliente").value = "";
+  document.getElementById("dni").value = "";
+  document.getElementById("nombrecliente").value = "";
+  document.getElementById("telefono").value = "";
+    document.getElementById("direccion").value = "";
+    document.getElementById("removerCliente").classList.add("invisible");
+    document.getElementById("removerCliente").setAttribute("disabled", "");
+}
+
+function calcularPrecio(e) {
+  e.preventDefault();
+  let cant = parseInt(document.getElementById("cantidad").value);
+  let subtotal = document.getElementById("precio_total");
+  if (
+    cant < 1 ||
+    isNaN(cant) 
+  ) {
+    subtotal.value = "";
+    document.getElementById("agregar").classList.add("invisible");
+    document.getElementById("agregar").setAttribute("disabled", "");
+  } else {
+    subtotal.value = (cant * document.getElementById("precio").value).toFixed(
+      2
+    );
+    document.getElementById("agregar").classList.remove("invisible");
+    document.getElementById("agregar").removeAttribute("disabled");
+  }
+}
+
+
+function calcularPrecioVenta(e) {
+  e.preventDefault();
+  let cant = parseInt(document.getElementById("cantidad").value);
+  const stock = parseInt(document.getElementById("stock").value);
+  let subtotal = document.getElementById("precio_total");
+  if ( (
+    cant < 1 ||
+    isNaN(cant)  ) 
+  ) {
+    subtotal.value = "";
+    document.getElementById("agregar").classList.add("invisible");
+    document.getElementById("agregar").setAttribute("disabled", "");
+  } else {
+    const id =     document.getElementById("id");
+    const url = base_url + "Compras/validacionStock/"+ id.value ;
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        const res = JSON.parse(this.responseText);
+        if (res.msg == "ok") {
+          let cantidad_temporal;
+          if(res.cantidad_temp != null){
+            cantidad_temporal = parseInt(res.cantidad_temp);
+          }else{
+            cantidad_temporal = 0;
+          }
+          if(cant +  cantidad_temporal >  parseInt(res.cantidad)){
+            subtotal.value = "";
+            document.getElementById("agregar").classList.add("invisible");
+            document.getElementById("agregar").setAttribute("disabled", "");
+          }else{
+       subtotal.value = (cant * document.getElementById("precio").value).toFixed(2);
+         document.getElementById("agregar").classList.remove("invisible");
+        document.getElementById("agregar").removeAttribute("disabled");
+
+          }
+
+        }
+      }
+    };
+  }
+}
+
+function listarBuscarProducto() {
+  if (document.getElementById("tblProductosModal")) {
+    tblProductosModal = $("#tblProductosModal").DataTable({
+      destroy: true,
+      responsive: true,
+
+      language: {
+        url: base_url + "Assets/json/español.json",
+      },
+      ajax: {
+        url: base_url + "Compras/listarProductos",
+        dataSrc: "",
+      },
+      columns: [
+        {
+          data: "id",
+        },
+        {
+          data: "codigo",
+        },
+        {
+          data: "descripcion",
+        },
+        {
+          data: "cantidad",
+        },
+        {
+          data: "precio_compra",
+        },
+        {
+          data: "acciones",
+        },
+      ],
+    });
+  }
+}
+
+function listarBuscarProductoVenta() {
+  if (document.getElementById("tblProductosModal")) {
+    tblProductosModal = $("#tblProductosModal").DataTable({
+      destroy: true,
+      responsive: true,
+
+      language: {
+        url: base_url + "Assets/json/español.json",
+      },
+      ajax: {
+        url: base_url + "Compras/listarProductosVenta",
+        dataSrc: "",
+      },
+      columns: [
+        {
+          data: "id",
+        },
+        {
+          data: "codigo",
+        },
+        {
+          data: "descripcion",
+        },
+        {
+          data: "cantidad",
+        },
+        {
+          data: "precio_venta",
+        },
+        {
+          data: "acciones",
+        },
+      ],
+    });
+  }
+}
+
+function listarBuscarCliente() {
+  if (document.getElementById("tblClientesModal")) {
+    tblClientesModal = $("#tblClientesModal").DataTable({
+      destroy: true,
+      responsive: true,
+
+      language: {
+        url: base_url + "Assets/json/español.json",
+      },
+      ajax: {
+        url: base_url + "Compras/listarClientes",
+        dataSrc: "",
+      },
+      columns: [
+        {
+          data: "id",
+        },
+        {
+          data: "dni",
+        },
+        {
+          data: "nombre",
+        },
+        {
+          data: "telefono",
+        },
+        {
+          data: "direccion",
+        },
+        {
+          data: "acciones",
+        },
+      ],
+    });
+  }
+}
+
+function agregarProductoDetalleTemp(e) {
+  e.preventDefault();
+  const url = base_url + "Compras/ingresar";
+  const frm = document.getElementById("frmCompra");
+  /* const frm2 = document.getElementById("frmCliente");
+ 
+  let arreglo = [];
+  const formData = Object.fromEntries(new FormData(frm));
+  console.log(formData);
+  const formData2 =  Object.fromEntries(new FormData(frm2));
+  console.log(formData2);
+ arreglo.push(formData);
+ arreglo.push(formData2);
+ console.log(arreglo);*/
+  const http = new XMLHttpRequest();
+  http.open("POST", url, true);
+  //http.send(JSON.stringify(arreglo));
+  http.send(new FormData(frm));
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+       /*    console.log(JSON.parse(this.responseText));
+    //  console.log(JSON.parse(this.responseText));
+     // const reas = JSON.parse(this.responseText);
+    // console.log(this.responseText);
+      return false;
+*/
+      const res = JSON.parse(this.responseText);
+      
+      if (res == "ok") {
+        frm.reset();
+        document.getElementById("id").removeAttribute("value");
+        document.getElementById("cantidad").setAttribute("disabled", "");
+        document.getElementById("agregar").classList.add("invisible");
+        document.getElementById("agregar").setAttribute("disabled", "");
+        Swal.fire({
+          icon: "success",
+          title: "Producto agregado con éxito",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+        cargarDetalle();
+      }
+    }
+  };
+}
+
+function agregarProductoDetalleTempVenta(e) {
+  e.preventDefault();
+  const url = base_url + "Compras/ingresarVenta";
+  const frm = document.getElementById("frmCompra");
+  /* const frm2 = document.getElementById("frmCliente");
+ 
+  let arreglo = [];
+  const formData = Object.fromEntries(new FormData(frm));
+  console.log(formData);
+  const formData2 =  Object.fromEntries(new FormData(frm2));
+  console.log(formData2);
+ arreglo.push(formData);
+ arreglo.push(formData2);
+ console.log(arreglo);*/
+  const http = new XMLHttpRequest();
+  http.open("POST", url, true);
+  //http.send(JSON.stringify(arreglo));
+  http.send(new FormData(frm));
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+  /*    console.log(JSON.parse(this.responseText));
+    //  console.log(JSON.parse(this.responseText));
+     // const reas = JSON.parse(this.responseText);
+    // console.log(this.responseText);
+      return false;
+*/
+      const res = JSON.parse(this.responseText);
+      
+      if (res == "ok") {
+        frm.reset();
+        document.getElementById("id").removeAttribute("value");
+        document.getElementById("cantidad").setAttribute("disabled", "");
+        document.getElementById("agregar").classList.add("invisible");
+        document.getElementById("agregar").setAttribute("disabled", "");
+        Swal.fire({
+          icon: "success",
+          title: "Producto agregado con éxito",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+        cargarDetalleVenta();
+      }
+    }
+  };
+}
+
+function cargarDetalle() {
+
+  if (document.getElementById("tblDetalleTemp")) {
+
+  const url = base_url + "Compras/listar";
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      let html = "";
+      if (res != "") {
+
+        if(res.detalle.length > 0){
+          res.detalle.forEach((row) => {
+            html += `<tr>
+              <td>${row["id_producto"]}</td>
+              <td>${row["descripcion"]}</td>
+              <td>${row["cantidad"]}</td>
+              <td>${row["precio"]}</td>
+              <td>${row["sub_total"]}</td>
+              <td><button class="btn btn-danger" type="button" onclick="deleteDetalle(${row["id"]})"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`;
+          });
+  
+         
+            document.getElementById("tblDetalleTemp").innerHTML = html;
+            //console.log(res.total_pagar.total);
+            document.getElementById("total").value = "S/. "+res.total_pagar.total;
+            document.getElementById("generarCompra").removeAttribute("disabled");
+            document.getElementById("generarCompra").classList.remove("invisible");
+          
+        }else{
+          document.getElementById("tblDetalleTemp").innerHTML = "";
+            document.getElementById("total").value = "";
+            document.getElementById("generarCompra").setAttribute("disabled","");
+            document.getElementById("generarCompra").classList.add("invisible");
+        }
+       
+      } 
+        
+
+      
+
+     
+    }
+  };
+}
+}
+
+function cargarDetalleVenta() {
+
+  if (document.getElementById("tblDetalleTempVenta")) {
+
+  const url = base_url + "Compras/listarVenta";
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      let html = "";
+      if (res != "") {
+
+        if(res.detalle.length > 0){
+          res.detalle.forEach((row) => {
+            html += `<tr>
+              <td>${row["id_producto"]}</td>
+              <td>${row["descripcion"]}</td>
+              <td>${row["cantidad"]}</td>
+              <td>${row["precio"]}</td>
+              <td>${row["sub_total"]}</td>
+              <td><button class="btn btn-danger" type="button" onclick="deleteDetalleVenta(${row["id"]})"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>`;
+          });
+  
+         
+            document.getElementById("tblDetalleTempVenta").innerHTML = html;
+            document.getElementById("total").value = "S/. "+res.total_pagar.total;
+            document.getElementById("generarVenta").removeAttribute("disabled");
+            document.getElementById("generarVenta").classList.remove("invisible");
+            document.getElementById("anularVenta").removeAttribute("disabled","");
+            document.getElementById("anularVenta").classList.remove("invisible");
+          
+        }else{
+          document.getElementById("tblDetalleTempVenta").innerHTML = "";
+            document.getElementById("total").value = "";
+            document.getElementById("generarVenta").setAttribute("disabled","");
+            document.getElementById("generarVenta").classList.add("invisible");
+            document.getElementById("anularVenta").setAttribute("disabled","");
+            document.getElementById("anularVenta").classList.add("invisible");
+        }
+       
+      } 
+        
+
+      
+
+     
+    }
+  };
+}
+}
+
+function deleteDetalle(id){
+  const url = base_url + "Compras/deleteDetalle/"+id;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+            const res = JSON.parse(this.responseText);
+            if(res == "ok"){
+              Swal.fire({
+                icon: "success",
+                title: "Producto eliminado con éxito",
+                timer: 1700,
+                showConfirmButton: false,
+              });
+              cargarDetalle();
+            }else{
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                timer: 1700,
+                showConfirmButton: false,
+              });
+            }
+
+    }
+  };
+}
+
+function deleteDetalleVenta(id){
+  const url = base_url + "Compras/deleteDetalleVenta/"+id;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+            const res = JSON.parse(this.responseText);
+            if(res == "ok"){
+              Swal.fire({
+                icon: "success",
+                title: "Producto eliminado con éxito",
+                timer: 1700,
+                showConfirmButton: false,
+              });
+              cargarDetalleVenta();
+            }else{
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                timer: 1700,
+                showConfirmButton: false,
+              });
+            }
+
+    }
+  };
+}
+
+function generarCompra(e){
+  e.preventDefault();
+  Swal.fire({
+    title: "¿Está seguro de efectuar la compra?",
+    icon: "warning",
+    showCancelButton: true,
+    cancelButtonText: "No",
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const url = base_url + "Compras/registrarCompra";
+      const http = new XMLHttpRequest();
+      http.open("GET", url, true);
+      http.send();
+      http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+          if (res.msg == "ok") {
+            Swal.fire({
+              icon: "success",
+              timer: 2500,
+              title: "Compra generada exitosamente",
+              showConfirmButton: false
+            });
+            const ruta = base_url + 'Compras/generarPdf/'+res.id_compra;
+            window.open(ruta);
+            setTimeout(()=>{
+              window.location.reload();
+            },300);
+            
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: res.msg,
+            });
+          }
+        }
+      };
+    }
+  });
+}
+
+function generarVenta(e){
+  e.preventDefault();
+  let idcliente = document.getElementById("idcliente");
+  if(idcliente.value == ""){
+      idcliente.value = 1;
+  }
+  Swal.fire({
+    title: "¿Está seguro de efectuar la venta?",
+    icon: "warning",
+    showCancelButton: true,
+    cancelButtonText: "No",
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const url = base_url + "Compras/registrarVenta/"+ idcliente.value ;
+      const http = new XMLHttpRequest();
+      http.open("GET", url, true);
+      http.send();
+      http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+          if (res.msg == "ok") {
+            Swal.fire({
+              icon: "success",
+              timer: 2500,
+              title: "Venta generada exitosamente",
+              showConfirmButton: false
+            });
+            const ruta = base_url + 'Compras/generarPdfVenta/'+res.id_venta;
+            window.open(ruta);
+            setTimeout(()=>{
+              window.location.reload();
+            },300);
+            
+          }else if(res.msg = "productoerror"){
+                  
+            Swal.fire({
+              icon: "error",
+              title: "Error en el producto "+res.data.descripcion,
+              text: "La cantidad de "+res.cantidad_temp+" sobrepasa al stock actual de "+res.data.cantidad
+            });
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: res.msg,
+            });
+          }
+        }
+      };
+    }
+  });
+}
+
+
+function anularVenta(e){
+  e.preventDefault();
+  Swal.fire({
+    title: "¿Está seguro de anular la venta?",
+    icon: "warning",
+    showCancelButton: true,
+    cancelButtonText: "No",
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const url = base_url + "Compras/anularVenta";
+      const http = new XMLHttpRequest();
+      http.open("GET", url, true);
+      http.send();
+      http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+          if (res.msg == "ok") {
+            Swal.fire({
+              icon: "success",
+              timer: 2500,
+              title: "Venta anulada exitosamente",
+              showConfirmButton: false
+            });
+            
+  document.getElementById("idcliente").value = "";
+  document.getElementById("dni").value = "";
+  document.getElementById("nombrecliente").value = "";
+  document.getElementById("telefono").value = "";
+    document.getElementById("direccion").value = "";
+    document.getElementById("removerCliente").classList.add("invisible");
+    document.getElementById("removerCliente").setAttribute("disabled", "");
+            cargarDetalleVenta();
+            
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: res.msg,
+            });
+          }
+        }
+      };
+    }
+  });
+}
+
+
+function listarHistorialCompras() {
+  if (document.getElementById("tblHistorialCompra")) {
+    tblMedidas = $("#tblHistorialCompra").DataTable({
+      destroy: true,
+      responsive: true,
+
+      language: {
+        url: base_url + "Assets/json/español.json",
+      },
+      ajax: {
+        url: base_url + "Compras/listarHistorial",
+        dataSrc: "",
+      },
+      columns: [
+        {
+          data: "id",
+        },
+        {
+          data: "fecha",
+        },
+        {
+          data: "nombre",
+        },
+        {
+          data: "total",
+        },
+        {
+          data: "estado",
+        },
+        {
+          data: "acciones",
+        },
+      ],
+    });
+  }
+}
+
+function listarHistorialVentas() {
+  if (document.getElementById("tblHistorialVenta")) {
+    tblHistorialVenta = $("#tblHistorialVenta").DataTable({
+      destroy: true,
+      responsive: true,
+
+      language: {
+        url: base_url + "Assets/json/español.json",
+      },
+      ajax: {
+        url: base_url + "Compras/listarHistorialVentas",
+        dataSrc: "",
+      },
+      columns: [
+        {
+          data: "id",
+        },
+        {
+          data: "fecha",
+        },
+        {
+          data: "usuario",
+        },
+        {
+          data: "cliente",
+        },
+        {
+          data: "total",
+        },
+        {
+          data: "estado",
+        },
+        {
+          data: "acciones",
+        },
+      ],
+    });
+  }
+}
+
+function AnularVentaId(id){
+  Swal.fire({
+    title: "¿Está seguro de anular la venta con el ID "+id,
+    icon: "warning",
+    showCancelButton: true,
+    cancelButtonText: "No",
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const url = base_url + "Compras/anularVentaEstado/"+id;
+      const http = new XMLHttpRequest();
+      http.open("GET", url, true);
+      http.send();
+      http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+          if (res == "ok") {
+            Swal.fire({
+              icon: "success",
+              timer: 2500,
+              title: "Venta anulada exitosamente",
+              showConfirmButton: false
+            });
+            tblHistorialVenta.ajax.reload(null, false);
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: res,
+            });
+          }
+        }
+      };
+    }
+  });
+}
+
+
+function modificarEmpresa(){
+ const frm = document.getElementById("frmEmpresa");
+ const url = base_url + "Administracion/modificar";
+ const http = new XMLHttpRequest();
+ http.open("POST", url, true);
+ http.send(new FormData(frm));
+ http.onreadystatechange = function () {
+   if (this.readyState == 4 && this.status == 200) {
+    
+      const res = JSON.parse(this.responseText);
+     if (res == "ok") {
+       Swal.fire({
+         icon: "success",
+         timer: 2500,
+         title: "Configuración actualizado exitosamente",
+         showConfirmButton: false
+       });
+       
+     } else {
+       Swal.fire({
+         icon: "error",
+         title: res,
+       });
+     }
+   }
+ };
 }

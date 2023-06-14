@@ -25,10 +25,11 @@ class Productos extends Controller
 
         $data = $this->model->getProductos();
         for ($i = 0; $i < count($data); $i++) {
+            $data[$i]['foto'] = '<img width="50px" src="' . constant("URL") . 'Assets/img/' . $data[$i]["foto"] . '">';
             if ($data[$i]['estado'] == 1) {
                 $data[$i]['estado'] = ' <h5><span class="badge bg-success">Activo</span></h5>';
                 $data[$i]['acciones'] =  '<div>
-                <button type="button" data-bs-toggle="modal" data-bs-target="#nuevo_producto" onclick="btnEditarProducto(' . $data[$i]["id"] . ');" class="btn btn-primary mx-2" ><i class="fas fa-edit"></i></button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#nuevo_producto" onclick="btnEditarProducto(' . $data[$i]["id"] . ');" class="btn btn-primary " ><i class="fas fa-edit"></i></button>
                 <button type="button" onclick="btnEliminarProducto(' . $data[$i]["id"] . ');" class="btn btn-danger" ><i class="fas fa-trash"></i></button>
                 <button type="button"  class="btn btn-secondary disabled" ><i class="fa fa-rotate"></i></button>
                 </div>';
@@ -57,7 +58,14 @@ class Productos extends Controller
         $categoria = $_POST["categoria"];
         $usuario = $_SESSION["id_usuario"];
         $id = $_POST["id"];
-        if (empty($codigo) || empty($descripcion)  || empty($precio_compra) || empty($precio_venta) || empty($cantidad) || empty($medida) || empty($categoria) ) {
+        $foto = $_FILES["foto"];
+        $nombre_foto = $foto["name"];
+        $url_temp = $foto["tmp_name"];
+
+
+
+
+        if (empty($codigo) || empty($descripcion)  || empty($precio_compra) || empty($precio_venta) || empty($cantidad) || empty($medida) || empty($categoria)) {
             $msg = "Todos los campos son obligatorios";
         } else if (!is_numeric($medida) || !is_numeric($categoria)) {
             $msg = "El id no es entero";
@@ -67,17 +75,27 @@ class Productos extends Controller
             $validarCategoria = $this->model->getCategoriaId($categoria);
             if ($validarMedida && $validarCategoria) {
                 if ($id == "") {
-                        
 
-                        $data =  $this->model->registrarProducto($codigo, $descripcion, $precio_compra, $precio_venta,$cantidad,$medida,$categoria,$usuario);
-                        if ($data == "ok") {
-                            $msg = "ok";
-                        } else if ($data == "existe") {
-                            $msg = "El código ya existe";
-                        } else {
-                            $msg = "Error al registrar el producto";
+                    $imgProducto = "img_producto.png";
+
+                    if ($nombre_foto != "") {
+                        $destino = "Assets/img/";
+                        $img_nombre = "img_" . md5(date("d-m-Y H:m:s"));
+                        $imgProducto = $img_nombre . ".jpg";
+                        $src = $destino . $imgProducto;
+                    }
+
+                    $data =  $this->model->registrarProducto($codigo, $descripcion, $precio_compra, $precio_venta, $cantidad, $medida, $categoria, $usuario, $imgProducto);
+                    if ($data == "ok") {
+                        if ($nombre_foto != "") {
+                            move_uploaded_file($url_temp, $src);
                         }
-                    
+                        $msg = "ok";
+                    } else if ($data == "existe") {
+                        $msg = "El código ya existe";
+                    } else {
+                        $msg = "Error al registrar el producto";
+                    }
                 } else {
 
                     if (!is_numeric($id)) {
@@ -85,8 +103,34 @@ class Productos extends Controller
                     } else {
                         $validarProducto = $this->model->getProductoId($id);
                         if ($validarProducto) {
-                            $data =  $this->model->modificarProducto($codigo, $descripcion, $precio_compra,$precio_venta,$cantidad,$medida,$categoria, $id);
+
+                            $imgProducto = $_POST["foto_actual"];
+                            $imgRemove = $_POST["foto_remove"];
+
+                            if ($nombre_foto != "") {
+                                $destino = "Assets/img/";
+                                $img_nombre = "img_" . md5(date("d-m-Y H:m:s"));
+                                $imgProducto = $img_nombre . ".jpg";
+                                $src = $destino . $imgProducto;
+                            } else {
+                                if ($imgProducto != $imgRemove) {
+                                    $imgProducto = "img_producto.png";
+                                }
+                            }
+
+                            $data =  $this->model->modificarProducto($codigo, $descripcion, $precio_compra, $precio_venta, $cantidad, $medida, $categoria, $imgProducto, $id);
                             if ($data == "modificado") {
+                                if (($nombre_foto != "" && ($_POST["foto_actual"] != "img_producto.png")) || ($_POST["foto_actual"] != $_POST["foto_remove"])) {
+
+                                    if(file_exists("Assets/img/" . $_POST["foto_actual"])){
+                                        unlink("Assets/img/" . $_POST["foto_actual"]);
+                                    }
+                                   
+                                }
+
+                                if ($nombre_foto != "") {
+                                    move_uploaded_file($url_temp, $src);
+                                }
                                 $msg = "modificado";
                             } else if ($data == "existe") {
                                 $msg = "El código ya existe";

@@ -13,13 +13,14 @@ include "Views/Templates/header.php";
 
 
 <button class="btn btn-primary mb-2 " data-bs-toggle="modal" data-bs-target="#nuevo_producto" onclick="btnNuevoProducto();" type="button">Nuevo <i class="fas fa-plus"></i></button>
+<div class="table-responsive">
 <table class="table table-borderless text-center pt-2" id="tblProductos" width="100%">
     <thead class="table-dark">
         <tr>
             <th class="text-center">ID</th>
             <th class="text-center">Código</th>
             <th class="text-center">Descripción</th>
-            <th class="text-center">P. Compra</th>
+            <th class="text-center">Foto</th>
             <th class="text-center">P. Venta</th>
             <th class="text-center">Cantidad</th>
             <th class="text-center">Medida</th>
@@ -28,13 +29,14 @@ include "Views/Templates/header.php";
             <th class="text-center">Acciones</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody class="text-center">
 
     </tbody>
 </table>
+</div>
 
-<div id="nuevo_producto" class="modal modal-lg fade" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div id="nuevo_producto" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <h5 class="modal-title text-white" id="my-modal-title"></h5>
@@ -43,13 +45,14 @@ include "Views/Templates/header.php";
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" id="frmProducto">
-
+                <form method="post" id="frmProducto" enctype="multipart/form-data">
+                    <input type="hidden" id="id" name="id">
+                    
                     <div class="row text-center" id="codigo_descripcion">
                         <div class="col-md-6 m-auto">
                             <div class="form-group">
                                 <label for="codigo" class="col-form-label">Código</label>
-                                <input type="hidden" id="id" name="id">
+                               
                                 <input id="codigo" class="form-control" type="number" name="codigo" placeholder="Código del Producto">
                             </div>
                         </div>
@@ -107,6 +110,25 @@ include "Views/Templates/header.php";
                         </div>
                     </div>
 
+
+
+                    <div class="col-md-12 mt-2 mx-auto text-center">
+                        <div class="form-group ">
+                            <label>Foto</label>
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <div class="prevPhoto">
+                                        <span class="btn btn-danger delPhoto notBlock"><i class="fa fa-xmark" ></i></span>
+                                        <label for="foto" id="previo" class="btn"></label>
+                                    </div>
+                                    <div class="upimg">
+                                        <input id="foto" class="form-control-file" type="file" name="foto" hidden>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-md-12 text-center pt-4">
                         <div class="form-group">
                             <button class="btn btn-primary m-2" type="button" id="btnAccion" onclick="registrarProducto(event)">Registrar</button>
@@ -118,6 +140,8 @@ include "Views/Templates/header.php";
         </div>
     </div>
 </div>
+
+
 
 <?php include "Views/Templates/footer.php";
 
