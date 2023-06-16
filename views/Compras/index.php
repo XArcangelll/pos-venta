@@ -43,6 +43,7 @@ include "Views/Templates/header.php";
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
+                        <input type="hidden" name="medida" id="medida">
                         <label for="cantidad">Cantidad</label>
                         <input id="cantidad" class="form-control" type="text" name="cantidad" onkeyup="calcularPrecio(event);" placeholder="Cantidad" disabled>
                     </div>
@@ -59,6 +60,7 @@ include "Views/Templates/header.php";
                         <input id="precio_total" class="form-control" type="number" name="precio_total" placeholder="Sub Total S/." disabled>
                     </div>
                 </div>
+                
                 <div class="d-flex flex-row-reverse col-md-10 mt-2">
                     <div class="form-group">
                         <button type="button" id="agregar" onclick="agregarProductoDetalleTemp(event);" class="btn btn-danger mt-2 invisible" type="number" disabled>Agregar</button>

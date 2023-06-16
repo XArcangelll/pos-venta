@@ -27,6 +27,12 @@ class ComprasModel extends Query
         return $data;
     }
 
+    public function consultarPrecioProducto(int $id_producto){
+        $sql = "SELECT precio_venta from productos where id = $id_producto and estado = 1";
+        $data = $this->select($sql);
+        return $data;
+    }
+
     public function getProductos()
     {
         $sql = "SELECT p.id, p.codigo, p.descripcion,p.precio_venta, p.precio_compra, p.cantidad FROM productos p where p.estado = 1";
@@ -95,8 +101,8 @@ class ComprasModel extends Query
     public function actualizarDetalleTempVenta( float $precio, int $cantidad, float $sub_total,int $id_producto, int $id_usuario)
     {
 
-        $sql = "UPDATE detalle_temp_venta SET precio = ?, cantidad = ?, sub_total = ? WHERE id_producto = ? and id_usuario = ?";
-        $datos = array($precio, $cantidad, $sub_total, $id_producto, $id_usuario);
+        $sql = "UPDATE detalle_temp_venta SET precio = ?, cantidad = ?, sub_total = ? WHERE id_producto = ? and id_usuario = ? and precio = ?";
+        $datos = array($precio, $cantidad, $sub_total, $id_producto, $id_usuario,$precio);
         $data = $this->save($sql, $datos);
         if ($data == 1) {
             $res = "modificado";
@@ -167,9 +173,9 @@ class ComprasModel extends Query
         return $data;
     }
 
-    public function consultarDetalleTemporalVenta(int $id_producto, int $id_usuario)
+    public function consultarDetalleTemporalVenta(int $id_producto, int $id_usuario, float $precio)
     {
-        $sql = "SELECT * FROM detalle_temp_venta where id_producto = $id_producto and id_usuario = $id_usuario";
+        $sql = "SELECT * FROM detalle_temp_venta where id_producto = $id_producto and id_usuario = $id_usuario and precio = $precio";
         $data = $this->select($sql);
         return $data;
     }
@@ -319,7 +325,7 @@ class ComprasModel extends Query
 
     public function accionEstadoVenta(int $estado, int $id_venta)
     {
-        $sql = "UPDATE ventas set estado = ? WHERE id = ? ";
+        $sql = "UPDATE ventas set estado = ? WHERE id = ? and estado != 0";
         $datos = array($estado,$id_venta);
         $data = $this->save($sql, $datos);
         return $data;

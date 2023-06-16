@@ -53,7 +53,10 @@ class Productos extends Controller
         $descripcion = $_POST["descripcion"];
         $precio_compra = $_POST["precio_compra"];
         $precio_venta = $_POST["precio_venta"];
-        $cantidad = $_POST["cantidad"];
+        $adicional = $_POST["adicional"];
+        if(!is_numeric($adicional) || $adicional < 0 || empty($adicional)){
+            $adicional = 0;
+        }
         $medida = $_POST["medida"];
         $categoria = $_POST["categoria"];
         $usuario = $_SESSION["id_usuario"];
@@ -61,11 +64,7 @@ class Productos extends Controller
         $foto = $_FILES["foto"];
         $nombre_foto = $foto["name"];
         $url_temp = $foto["tmp_name"];
-
-
-
-
-        if (empty($codigo) || empty($descripcion)  || empty($precio_compra) || empty($precio_venta) || empty($cantidad) || empty($medida) || empty($categoria)) {
+        if (empty($codigo) || empty($descripcion)  || empty($precio_compra) || empty($precio_venta) || empty($medida) || empty($categoria)) {
             $msg = "Todos los campos son obligatorios";
         } else if (!is_numeric($medida) || !is_numeric($categoria)) {
             $msg = "El id no es entero";
@@ -85,7 +84,7 @@ class Productos extends Controller
                         $src = $destino . $imgProducto;
                     }
 
-                    $data =  $this->model->registrarProducto($codigo, $descripcion, $precio_compra, $precio_venta, $cantidad, $medida, $categoria, $usuario, $imgProducto);
+                    $data =  $this->model->registrarProducto($codigo, $descripcion, $precio_compra, $precio_venta, $adicional, $medida, $categoria, $usuario, $imgProducto);
                     if ($data == "ok") {
                         if ($nombre_foto != "") {
                             move_uploaded_file($url_temp, $src);
@@ -118,7 +117,7 @@ class Productos extends Controller
                                 }
                             }
 
-                            $data =  $this->model->modificarProducto($codigo, $descripcion, $precio_compra, $precio_venta, $cantidad, $medida, $categoria, $imgProducto, $id);
+                            $data =  $this->model->modificarProducto($codigo, $descripcion, $precio_compra, $precio_venta, $adicional , $medida, $categoria, $imgProducto, $id);
                             if ($data == "modificado") {
                                 if (($nombre_foto != "" && ($_POST["foto_actual"] != "img_producto.png")) || ($_POST["foto_actual"] != $_POST["foto_remove"])) {
 

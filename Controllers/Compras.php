@@ -37,7 +37,7 @@ class Compras extends Controller
         }else{
             $cantidad_temp = null;
         }
-        $msg = array("msg"=>"ok","cantidad_temp" => $cantidad_temp, "cantidad" => $cantidad);
+        $msg = array("msg"=>"ok","cantidad_temp" => $cantidad_temp, "cantidad" => $cantidad,"medida"=>$data["id_medida"]);
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
     }
@@ -137,7 +137,11 @@ class Compras extends Controller
 
         $comprobar = $this->model->consultarDetalleTemporal($id_producto, $id_usuario);
         if (empty($comprobar)) {
-            $sub_total = $precio * $cantidad;
+            if($datos["id_medida"] != 2) {
+                $sub_total = $precio * $cantidad;
+            }else{
+                $sub_total = ($precio * $cantidad)/1000;
+            }
             $data = $this->model->registrarDetalleTemp($id_producto, $id_usuario, $precio, $cantidad, $sub_total);
             if ($data == "ok") {
                 $msg = "ok";
@@ -146,7 +150,11 @@ class Compras extends Controller
             }
         } else {
             $total_cantidad = $comprobar["cantidad"] + $cantidad;
-            $sub_total = $total_cantidad * $precio;
+            if($datos["id_medida"] != 2) {
+                $sub_total = $precio * $total_cantidad;
+            }else{
+                $sub_total = ($precio * $total_cantidad)/1000;
+            }
             $data = $this->model->actualizarDetalleTemp($precio, $total_cantidad, $sub_total, $id_producto, $id_usuario);
             if ($data == "modificado") {
                 $msg = "ok";
@@ -160,16 +168,33 @@ class Compras extends Controller
 
     public function ingresarVenta()
     {
+       
         $id = $_POST["id"];
         $datos = $this->model->getProductoId($id);
         $id_producto = $datos["id"];
         $id_usuario = $_SESSION["id_usuario"];
         $precio = $datos["precio_venta"];
         $cantidad = $_POST["cantidad"];
+        $adicional = 0;
+        if(isset($_POST["adicional"])){
+            
+        if($_POST["adicional"]){
+            $adicional = $datos["adicional"];
+            $precio = $datos["precio_venta"] + $adicional;
+         }else{
+           $adicional = 0;
+           $precio = $datos["precio_venta"] ;
+         }
+        }
 
-        $comprobar = $this->model->consultarDetalleTemporalVenta($id_producto, $id_usuario);
+        $comprobar = $this->model->consultarDetalleTemporalVenta($id_producto, $id_usuario,$precio);
         if (empty($comprobar)) {
-            $sub_total = $precio * $cantidad;
+            if($datos["id_medida"] != 2) {
+                $sub_total = ($datos["precio_venta"] * $cantidad) + ($adicional * $cantidad );
+            }else{
+                $sub_total = ($datos["precio_venta"] * $cantidad)/1000;
+            }
+           
             $data = $this->model->registrarDetalleTempVenta($id_producto, $id_usuario, $precio, $cantidad, $sub_total);
             if ($data == "ok") {
                 $msg = "ok";
@@ -178,7 +203,11 @@ class Compras extends Controller
             }
         } else {
             $total_cantidad = $comprobar["cantidad"] + $cantidad;
-            $sub_total = $total_cantidad * $precio;
+            if($datos["id_medida"] != 2) {
+            $sub_total = ($total_cantidad * $datos["precio_venta"])  + ($total_cantidad * $adicional );
+            }else{
+                $sub_total = ($total_cantidad * $datos["precio_venta"])/1000 ;
+            }
             $data = $this->model->actualizarDetalleTempVenta($precio, $total_cantidad, $sub_total, $id_producto, $id_usuario);
             if ($data == "modificado") {
                 $msg = "ok";
@@ -205,6 +234,17 @@ class Compras extends Controller
 
         $id_usuario = $_SESSION["id_usuario"];
         $data["detalle"] = $this->model->getDetalleTemporalVenta($id_usuario);
+       foreach( $data["detalle"] as $clave => $row){
+        $data["detalle"][$clave]["descripcion_detalle"] = "";
+        $consulta = $this->model->consultarPrecioProducto($row["id_producto"]);
+        if($row["precio"] > $consulta["precio_venta"]){
+           
+            $descripcion_adicional = $row["descripcion"] . " (ADICIONAL)";
+       $data["detalle"][$clave]["descripcion_detalle"] = $descripcion_adicional;
+       }else{
+       $data["detalle"][$clave]["descripcion_detalle"] = $row["descripcion"];
+       }
+    }
         $data["total_pagar"] = $this->model->calcularVenta($id_usuario);
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
@@ -452,7 +492,13 @@ class Compras extends Controller
         $pdf->SetTextColor(0,0,0);
         $total = 0.0;
         foreach($productos as $row){
-            $pdf->Cell(75,5, mb_convert_encoding($row["descripcion"], 'ISO-8859-1', 'UTF-8'),0,0,'L');
+            $dato = $this->model->consultarPrecioProducto($row["id_producto"]);
+            if($row["precio"] > $dato["precio_venta"]){
+                $pdf->Cell(75,5, mb_convert_encoding($row["descripcion"]. " (ADICIONAL)", 'ISO-8859-1', 'UTF-8'),0,0,'L');
+            }else{
+                $pdf->Cell(75,5, mb_convert_encoding($row["descripcion"], 'ISO-8859-1', 'UTF-8'),0,0,'L');
+            }
+         
             $pdf->Cell(12,5,$row["cantidad"],0,0,'L');
              $pdf->Cell(12,5,$row["precio"],0,0,'L');
             $pdf->Cell(15,5,$row["sub_total"],0,1,'L');
@@ -509,6 +555,7 @@ class Compras extends Controller
                 $data[$i]['acciones'] =  '
                 <div>
                 <a  href="'.constant("URL")."Compras/generarPdfVenta/".$data[$i]["id"].'" class="btn btn-primary" target="_blank"><i class="fa fa-file-pdf"></i></a>
+                <button type="button" onclick="pendienteVenta(' . $data[$i]["id"] . ');" class="btn btn-warning text-white" ><i class="fa fa-rotate"></i></button>
                 <button type="button" onclick="AnularVentaId(' . $data[$i]["id"] . ');" class="btn btn-danger" ><i class="fas fa-ban"></i></button>
                 </div>';
             }else if($data[$i]['estado'] == 2){
@@ -516,13 +563,16 @@ class Compras extends Controller
                 $data[$i]['acciones'] =  '
                 <div>
                 <a  href="'.constant("URL")."Compras/generarPdfVenta/".$data[$i]["id"].'" class="btn btn-primary" target="_blank"><i class="fa fa-file-pdf"></i></a>
-                <button type="button" onclick="AnularVentaId(' . $data[$i]["id"] . ');" class="btn btn-danger" ><i class="fas fa-ban"></i></button>
+                <button type="button" onclick="pagadoVenta(' . $data[$i]["id"] . ');" class="btn btn-success" ><i class="fa fa-rotate"></i></button>
+                <button type="button" onclick="AnularVentaId(' . $data[$i]["id"] . ');" class="btn btn-danger " ><i class="fas fa-ban"></i></button>
+               
                 </div>';
             }else{
                 $data[$i]['estado'] = '<h5><span class="badge bg-danger">Anulado</span></h5>';
                 $data[$i]['acciones'] =  '
                 <div>
                 <a  href="'.constant("URL")."Compras/generarPdfVenta/".$data[$i]["id"].'" class="btn btn-primary" target="_blank"><i class="fa fa-file-pdf"></i></a>
+                <button type="button"  class="btn btn-secondary" disabled><i class="fas fa-clipboard"></i></button>
                 <button type="button"  class="btn btn-secondary" disabled><i class="fas fa-ban"></i></button>
                 </div>';
             }
@@ -562,6 +612,48 @@ class Compras extends Controller
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
 
+    }
+
+    public function pagadoVenta($id)
+    {
+        if (!is_numeric($id)) {
+            $msg = "El ID Venta no es entero";
+        } else {
+            $validarVenta = $this->model->getVentaId($id);
+            if ($validarVenta) {
+                $data = $this->model->accionEstadoVenta(1, $id);
+                if ($data == 1) {
+                    $msg = "ok";
+                } else {
+                    $msg = "Error al actualizar Venta";
+                }
+            } else {
+                $msg = "El ID de la venta no existe";
+            }
+        }
+        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function pendienteVenta($id)
+    {
+        if (!is_numeric($id)) {
+            $msg = "El ID Venta no es entero";
+        } else {
+            $validarVenta = $this->model->getVentaId($id);
+            if ($validarVenta) {
+                $data = $this->model->accionEstadoVenta(2, $id);
+                if ($data == 1) {
+                    $msg = "ok";
+                } else {
+                    $msg = "Error al actualizar Venta";
+                }
+            } else {
+                $msg = "El ID de la venta no existe";
+            }
+        }
+        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+        die();
     }
 
 

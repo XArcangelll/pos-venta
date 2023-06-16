@@ -103,7 +103,15 @@ include "Views/Templates/header.php";
                         <input id="precio_total" class="form-control" type="number" name="precio_total" placeholder="Sub Total S/." disabled>
                     </div>
                 </div>
-                <div class="d-flex flex-row-reverse col-md-10 mt-2">
+
+                <div class="col-md-3 mt-4 invisible" id="colAdicional">
+                <div class="w-100 p-3">
+                <label class="ps-3 me-1 h4" for="checkbox-3" >Adicional</label>
+                <input class="form-check-input  h4 pb-2" type="checkbox" name="adicional" disabled  id="adicional"/>
+                </div>
+                </div>
+
+                <div class="d-flex flex-row-reverse col-md-7 mt-2">
                     <div class="form-group">
                         <button type="button" id="agregar" onclick="agregarProductoDetalleTempVenta(event);" class="btn btn-danger mt-2 invisible" type="number" disabled>Agregar</button>
                     </div>

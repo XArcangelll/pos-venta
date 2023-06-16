@@ -80,8 +80,8 @@ include "Views/Templates/header.php";
 
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="cantidad" class="col-form-label">Cantidad</label>
-                                <input id="cantidad" class="form-control" type="number" name="cantidad" placeholder="Cantidad ">
+                                <label for="adicional" class="col-form-label">Adicional</label>
+                                <input id="adicional" class="form-control" type="number" name="adicional" placeholder="Precio adicional">
                             </div>
                         </div>
                     </div>

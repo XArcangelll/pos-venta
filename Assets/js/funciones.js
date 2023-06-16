@@ -1086,7 +1086,6 @@ function listarProductos() {
     tblProductos = $("#tblProductos").DataTable({
       destroy: true,
       responsive: true,
-
       language: {
         url: base_url + "Assets/json/español.json",
       },
@@ -1179,7 +1178,7 @@ function registrarProducto(e) {
   const descripcion = document.getElementById("descripcion");
   const precio_compra = document.getElementById("precio_compra");
   const precio_venta = document.getElementById("precio_venta");
-  const cantidad = document.getElementById("cantidad");
+  const cantidad = document.getElementById("adicional");
   const medida = document.getElementById("medida");
   const categoria = document.getElementById("categoria");
   if (
@@ -1187,7 +1186,6 @@ function registrarProducto(e) {
     descripcion.value == "" ||
     precio_compra.value == "" ||
     precio_venta.value == "" ||
-    cantidad.value == "" ||
     medida.value == "" ||
     categoria.value == ""
   ) {
@@ -1270,7 +1268,7 @@ function btnEditarProducto(id) {
   document.getElementById("descripcion").value = "cargando...";
   document.getElementById("precio_compra").value = 0.0;
   document.getElementById("precio_venta").value = 0.0;
-  document.getElementById("cantidad").value = 0.0;
+  document.getElementById("adicional").value = 0.0;
 
   const url = base_url + "Productos/editar/" + id;
   const http = new XMLHttpRequest();
@@ -1285,7 +1283,7 @@ function btnEditarProducto(id) {
       document.getElementById("descripcion").value = res.descripcion;
       document.getElementById("precio_compra").value = res.precio_compra;
       document.getElementById("precio_venta").value = res.precio_venta;
-      document.getElementById("cantidad").value = res.cantidad;
+      document.getElementById("adicional").value = res.adicional;
       document.getElementById("medida").value = res.id_medida;
       document.getElementById("categoria").value = res.id_categoria;
 
@@ -1541,19 +1539,27 @@ function buscarCodigo(e) {
         document.getElementById("nombre").value = res.descripcion;
         document.getElementById("stock").value = res.cantidad;
           document.getElementById("cantidad").value = 1;
+          document.getElementById("medida").value = res.id_medida;
           document.getElementById("cantidad").removeAttribute("disabled");
           document.getElementById("agregar").classList.remove("invisible");
           document.getElementById("agregar").removeAttribute("disabled");
         document.getElementById("precio").value = res.precio_compra;
-        document.getElementById("precio_total").value = (
-          res.precio_venta * document.getElementById("cantidad").value
-        ).toFixed(2);
+        if(res.id_medida != 2){
+          document.getElementById("precio_total").value = (
+            res.precio_compra * document.getElementById("cantidad").value
+          ).toFixed(2);
+          }else{
+            document.getElementById("precio_total").value = (
+              (res.precio_compra * document.getElementById("cantidad").value)/1000
+            ).toFixed(2);
+          }
         document.getElementById("cantidad").focus();
       } else {
         document.getElementById("id").value = "";
         document.getElementById("nombre").value = "";
         document.getElementById("stock").value = "";
         document.getElementById("cantidad").value = "";
+        document.getElementById("medida").value = "";
         document.getElementById("cantidad").setAttribute("disabled", "");
         document.getElementById("precio").value = "";
         document.getElementById("precio_total").value = "";
@@ -1575,8 +1581,6 @@ function buscarCodigoVenta(e) {
     if (this.readyState == 4 && this.status == 200) {
       const res = JSON.parse(this.responseText);
       if (res.msg == "ok") {
-        console.log(res.data);
-
         if(res.data){
           document.getElementById("id").value = res.data.id;
           document.getElementById("nombre").value = res.data.descripcion;
@@ -1597,17 +1601,33 @@ function buscarCodigoVenta(e) {
               document.getElementById("cantidad").setAttribute("disabled","");
               document.getElementById("agregar").classList.add("invisible");
               document.getElementById("agregar").setAttribute("disabled","");
+              document.getElementById("adicional").setAttribute("disabled","");
+              document.getElementById("colAdicional").classList.add("invisible");
             }else{
               document.getElementById("cantidad").value = 1;
               document.getElementById("cantidad").removeAttribute("disabled");
               document.getElementById("agregar").classList.remove("invisible");
               document.getElementById("agregar").removeAttribute("disabled");
+              if(parseFloat(res.data.adicional) > 0){
+                  
+              document.getElementById("colAdicional").classList.remove("invisible");
+              document.getElementById("adicional").removeAttribute("disabled");
+              }else{
+                document.getElementById("colAdicional").classList.add("invisible");
+                document.getElementById("adicional").setAttribute("disabled", "");
+              }
             }
           }
           document.getElementById("precio").value = res.data.precio_venta;
+          if(res.data.id_medida != 2){
           document.getElementById("precio_total").value = (
             res.data.precio_venta * document.getElementById("cantidad").value
           ).toFixed(2);
+          }else{
+            document.getElementById("precio_total").value = (
+              (res.data.precio_venta * document.getElementById("cantidad").value)/1000
+            ).toFixed(2);
+          }
         }else{
             
         document.getElementById("id").value = "";
@@ -1619,6 +1639,8 @@ function buscarCodigoVenta(e) {
         document.getElementById("precio_total").value = "";
         document.getElementById("agregar").classList.add("invisible");
         document.getElementById("agregar").setAttribute("disabled", "");
+        document.getElementById("colAdicional").classList.add("invisible");
+        document.getElementById("adicional").setAttribute("disabled", "");
         }
 
        
@@ -1632,6 +1654,8 @@ function buscarCodigoVenta(e) {
         document.getElementById("precio_total").value = "";
         document.getElementById("agregar").classList.add("invisible");
         document.getElementById("agregar").setAttribute("disabled", "");
+        document.getElementById("colAdicional").classList.add("invisible");
+        document.getElementById("adicional").setAttribute("disabled", "");
       }
     }
   };
@@ -1657,6 +1681,7 @@ function agregarCodigoProducto(e, codigo) {
         document.getElementById("codigo").value = res.codigo;
         document.getElementById("nombre").value = res.descripcion;
         document.getElementById("stock").value = res.cantidad;
+        document.getElementById("medida").value = res.id_medida;
     
           document.getElementById("cantidad").value = 1;
           document.getElementById("cantidad").removeAttribute("disabled");
@@ -1664,15 +1689,22 @@ function agregarCodigoProducto(e, codigo) {
           document.getElementById("agregar").removeAttribute("disabled");
       
         document.getElementById("precio").value = res.precio_compra;
-        document.getElementById("precio_total").value = (
-          res.precio_venta * document.getElementById("cantidad").value
-        ).toFixed(2);
+        if(res.id_medida != 2){
+          document.getElementById("precio_total").value = (
+            res.precio_compra * document.getElementById("cantidad").value
+          ).toFixed(2);
+          }else{
+            document.getElementById("precio_total").value = (
+              (res.precio_compra * document.getElementById("cantidad").value)/1000
+            ).toFixed(2);
+          }
       } else {
         document.getElementById("id").value = "";
         document.getElementById("codigo").value = "";
         document.getElementById("nombre").value = "";
         document.getElementById("stock").value = "";
         document.getElementById("cantidad").value = "";
+        document.getElementById("medida").value = "";
         document.getElementById("cantidad").setAttribute("disabled", "");
         document.getElementById("precio").value = "";
         document.getElementById("precio_total").value = "";
@@ -1754,18 +1786,34 @@ function agregarCodigoProductoVenta(e, codigo) {
               document.getElementById("cantidad").setAttribute("disabled","");
               document.getElementById("agregar").classList.add("invisible");
               document.getElementById("agregar").setAttribute("disabled","");
+              document.getElementById("adicional").setAttribute("disabled","");
+              document.getElementById("adicional").classList.add("invisible");
             }else{
               document.getElementById("cantidad").value = 1;
               document.getElementById("cantidad").removeAttribute("disabled");
               document.getElementById("agregar").classList.remove("invisible");
               document.getElementById("agregar").removeAttribute("disabled");
+              if(parseFloat(res.data.adicional) > 0){
+                  
+                document.getElementById("colAdicional").classList.remove("invisible");
+                document.getElementById("adicional").removeAttribute("disabled");
+                }else{
+                  document.getElementById("colAdicional").classList.add("invisible");
+                  document.getElementById("adicional").setAttribute("disabled", "");
+                }
             }
           }
       
         document.getElementById("precio").value = res.data.precio_venta;
-        document.getElementById("precio_total").value = (
-          res.data.precio_venta * document.getElementById("cantidad").value
-        ).toFixed(2);
+        if(res.data.id_medida != 2){
+          document.getElementById("precio_total").value = (
+            res.data.precio_venta * document.getElementById("cantidad").value
+          ).toFixed(2);
+          }else{
+            document.getElementById("precio_total").value = (
+              (res.data.precio_venta * document.getElementById("cantidad").value)/1000
+            ).toFixed(2);
+          }
       } else {
         document.getElementById("id").value = "";
         document.getElementById("codigo").value = "";
@@ -1777,6 +1825,8 @@ function agregarCodigoProductoVenta(e, codigo) {
         document.getElementById("precio_total").value = "";
         document.getElementById("agregar").classList.add("invisible");
         document.getElementById("agregar").setAttribute("disabled", "");
+        document.getElementById("colAdicional").classList.add("invisible");
+        document.getElementById("adicional").setAttribute("disabled", "");
       }
     }
   };
@@ -1848,9 +1898,18 @@ function calcularPrecio(e) {
     document.getElementById("agregar").classList.add("invisible");
     document.getElementById("agregar").setAttribute("disabled", "");
   } else {
+
+    
+    if(document.getElementById("medida").value != 2){
     subtotal.value = (cant * document.getElementById("precio").value).toFixed(
       2
     );
+    }else{
+      subtotal.value = ((cant * document.getElementById("precio").value)/1000).toFixed(
+        2
+      );
+    }
+
     document.getElementById("agregar").classList.remove("invisible");
     document.getElementById("agregar").removeAttribute("disabled");
   }
@@ -1890,7 +1949,12 @@ function calcularPrecioVenta(e) {
             document.getElementById("agregar").classList.add("invisible");
             document.getElementById("agregar").setAttribute("disabled", "");
           }else{
-       subtotal.value = (cant * document.getElementById("precio").value).toFixed(2);
+            if(res.medida != 2){
+              subtotal.value = (cant * document.getElementById("precio").value).toFixed(2);
+            }else{
+              subtotal.value = ((cant * document.getElementById("precio").value)/1000).toFixed(2);
+            }
+     
          document.getElementById("agregar").classList.remove("invisible");
         document.getElementById("agregar").removeAttribute("disabled");
 
@@ -2038,7 +2102,7 @@ function agregarProductoDetalleTemp(e) {
      // const reas = JSON.parse(this.responseText);
     // console.log(this.responseText);
       return false;
-*/
+*/   
       const res = JSON.parse(this.responseText);
       
       if (res == "ok") {
@@ -2047,6 +2111,7 @@ function agregarProductoDetalleTemp(e) {
         document.getElementById("cantidad").setAttribute("disabled", "");
         document.getElementById("agregar").classList.add("invisible");
         document.getElementById("agregar").setAttribute("disabled", "");
+        
         Swal.fire({
           icon: "success",
           title: "Producto agregado con éxito",
@@ -2064,7 +2129,7 @@ function agregarProductoDetalleTempVenta(e) {
   const url = base_url + "Compras/ingresarVenta";
   const frm = document.getElementById("frmCompra");
   /* const frm2 = document.getElementById("frmCliente");
- 
+  
   let arreglo = [];
   const formData = Object.fromEntries(new FormData(frm));
   console.log(formData);
@@ -2079,6 +2144,7 @@ function agregarProductoDetalleTempVenta(e) {
   http.send(new FormData(frm));
   http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
+    
   /*    console.log(JSON.parse(this.responseText));
     //  console.log(JSON.parse(this.responseText));
      // const reas = JSON.parse(this.responseText);
@@ -2093,6 +2159,8 @@ function agregarProductoDetalleTempVenta(e) {
         document.getElementById("cantidad").setAttribute("disabled", "");
         document.getElementById("agregar").classList.add("invisible");
         document.getElementById("agregar").setAttribute("disabled", "");
+        document.getElementById("colAdicional").classList.add("invisible");
+        document.getElementById("adicional").setAttribute("disabled", "");
         Swal.fire({
           icon: "success",
           title: "Producto agregado con éxito",
@@ -2174,7 +2242,7 @@ function cargarDetalleVenta() {
           res.detalle.forEach((row) => {
             html += `<tr>
               <td>${row["id_producto"]}</td>
-              <td>${row["descripcion"]}</td>
+              <td>${row["descripcion_detalle"]}</td>
               <td>${row["cantidad"]}</td>
               <td>${row["precio"]}</td>
               <td>${row["sub_total"]}</td>
@@ -2467,6 +2535,8 @@ function listarHistorialVentas() {
         url: base_url + "Compras/listarHistorialVentas",
         dataSrc: "",
       },
+      
+      order: [[0, 'desc']],
       columns: [
         {
           data: "id",
@@ -2518,6 +2588,83 @@ function AnularVentaId(id){
               timer: 2500,
               title: "Venta anulada exitosamente",
               showConfirmButton: false
+            });
+            tblHistorialVenta.ajax.reload(null, false);
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: res,
+            });
+          }
+        }
+      };
+    }
+  });
+}
+
+function pagadoVenta(id) {
+  Swal.fire({
+    title: "¿Está seguro de actualizar la venta con ID "+id+" a pagado?",
+    icon: "warning",
+    showCancelButton: true,
+    cancelButtonText: "No",
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const url = base_url + "Compras/pagadoVenta/" + id;
+      const http = new XMLHttpRequest();
+      http.open("GET", url, true);
+      http.send();
+      http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+          if (res == "ok") {
+            Swal.fire({
+              icon: "success",
+              timer: 2500,
+              title: "Cambiando estado",
+              text: "El estado se cambió a pagado exitosamente",
+            });
+            tblHistorialVenta.ajax.reload(null, false);
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: res,
+            });
+          }
+        }
+      };
+    }
+  });
+}
+
+
+function pendienteVenta(id) {
+  Swal.fire({
+    title: "¿Está seguro de actualizar la venta con ID "+id+" a pendiente?",
+    icon: "warning",
+    showCancelButton: true,
+    cancelButtonText: "No",
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const url = base_url + "Compras/pendienteVenta/" + id;
+      const http = new XMLHttpRequest();
+      http.open("GET", url, true);
+      http.send();
+      http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+          if (res == "ok") {
+            Swal.fire({
+              icon: "success",
+              timer: 2500,
+              title: "Cambiando estado",
+              text: "El estado se cambió a pendiente exitosamente",
             });
             tblHistorialVenta.ajax.reload(null, false);
           } else {

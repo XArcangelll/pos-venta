@@ -1,5 +1,22 @@
 <?php include "Views/Templates/header.php"; ?>
 
+
+<div class="card p-1">
+
+    <div class="card-header text-white bg-dark">
+            <h4> Lista de ventas</h4>
+    </div>
+
+   
+    <div class="row">
+            <div class="col-md-2">
+                    <div class="form-group">
+                        <a href="<?php echo constant("URL")?>Compras/ventas" class="btn btn-primary  my-3"  type="button"  >Nueva Venta </a>
+                    </div>
+                </div> 
+    </div>
+
+    
 <table class="table table-borderless text-center mt-2 pt-2" id="tblHistorialVenta">
     <thead class="table-dark">
         <tr>
@@ -15,5 +32,9 @@
     <tbody>
     </tbody>
 </table>
+
+  
+
+</div>
 
 <?php include "Views/Templates/footer.php";?>
