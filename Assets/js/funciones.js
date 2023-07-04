@@ -21,6 +21,58 @@ document.addEventListener("DOMContentLoaded", function () {
   listarHistorialCompras();
   listarHistorialVentas();
 });
+
+function frmCambiarPass(e) {
+  e.preventDefault();
+  const actual = document.getElementById("clave_actual").value;
+  const nueva = document.getElementById("clave_nueva").value;
+  const confirmar = document.getElementById("confirmar_clave").value;
+
+  if (actual == "" || nueva == "" || confirmar == "") {
+    Swal.fire({
+      icon: "error",
+      title: "Todos los Campos son obligatorios",
+      timer: 2500,
+      showConfirmButton: false,
+    });
+  } else if (nueva != confirmar) {
+    Swal.fire({
+      icon: "error",
+      title: "Las Contraseñas no coinciden",
+      timer: 2500,
+      showConfirmButton: false,
+    });
+  } else {
+    const url = base_url + "Usuarios/cambiarPass";
+    const frm = document.getElementById("frmCambiarPass");
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.send(new FormData(frm));
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        const res = JSON.parse(this.responseText);
+        if (res == "ok") {
+          Swal.fire({
+            icon: "success",
+            title: "Contraseña actualizada con éxito",
+            timer: 2500,
+            showConfirmButton: false,
+          });
+          frm.reset();
+          $("#cambiarPass").modal("hide");
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: res,
+            timer: 2500,
+            showConfirmButton: false,
+          });
+        }
+      }
+    };
+  }
+}
+
 function frmLogin(e) {
   e.preventDefault();
   const usuario = document.getElementById("usuario");
@@ -44,7 +96,7 @@ function frmLogin(e) {
         console.log = this.responseText;
         const res = JSON.parse(this.responseText);
         if (res == "ok") {
-          window.location = base_url + "Usuarios";
+          window.location = base_url + "Administracion/Home";
           /* Swal.fire({
                             icon: "success",
                             title: 'Ingresando al Sistema',
@@ -1093,26 +1145,27 @@ function listarProductos() {
         url: base_url + "Productos/listar",
         dataSrc: "",
       },
-      
-      dom: "<'row'<'col-md-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>" +
-      "<'row'<'col-sm-12'tr>>" +
-      "<'row'<'col-sm-12 col-md-5'i><'col-md-7'p>>"
-      ,
+
+      dom:
+        "<'row'<'col-md-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-md-7'p>>",
       buttons: [
         {
-          extend: 'excelHtml5',
+          extend: "excelHtml5",
           footer: true,
-          title: 'Archivo',
-          filename: 'Export_file',
-          text: '<span class="btn btn-success"><i class="fas fa-file-excel"></i></span>'
-        },{
-          extend: 'pdfHtml5',
+          title: "Archivo",
+          filename: "Export_file",
+          text: '<span class="btn btn-success"><i class="fas fa-file-excel"></i></span>',
+        },
+        {
+          extend: "pdfHtml5",
           text: '<span class="btn btn-danger"><i class="fas fa-file-pdf"></i></span>',
         },
         {
-          extend: 'colvis',
+          extend: "colvis",
           text: '<span class="btn btn-info"><i class="fas fa-table-columns"></i></span>',
-        }
+        },
       ],
       columns: [
         {
@@ -1538,21 +1591,22 @@ function buscarCodigo(e) {
         document.getElementById("id").value = res.id;
         document.getElementById("nombre").value = res.descripcion;
         document.getElementById("stock").value = res.cantidad;
-          document.getElementById("cantidad").value = 1;
-          document.getElementById("medida").value = res.id_medida;
-          document.getElementById("cantidad").removeAttribute("disabled");
-          document.getElementById("agregar").classList.remove("invisible");
-          document.getElementById("agregar").removeAttribute("disabled");
+        document.getElementById("cantidad").value = 1;
+        document.getElementById("medida").value = res.id_medida;
+        document.getElementById("cantidad").removeAttribute("disabled");
+        document.getElementById("agregar").classList.remove("invisible");
+        document.getElementById("agregar").removeAttribute("disabled");
         document.getElementById("precio").value = res.precio_compra;
-        if(res.id_medida != 2){
+        if (res.id_medida != 2) {
           document.getElementById("precio_total").value = (
             res.precio_compra * document.getElementById("cantidad").value
           ).toFixed(2);
-          }else{
-            document.getElementById("precio_total").value = (
-              (res.precio_compra * document.getElementById("cantidad").value)/1000
-            ).toFixed(2);
-          }
+        } else {
+          document.getElementById("precio_total").value = (
+            (res.precio_compra * document.getElementById("cantidad").value) /
+            1000
+          ).toFixed(2);
+        }
         document.getElementById("cantidad").focus();
       } else {
         document.getElementById("id").value = "";
@@ -1581,69 +1635,75 @@ function buscarCodigoVenta(e) {
     if (this.readyState == 4 && this.status == 200) {
       const res = JSON.parse(this.responseText);
       if (res.msg == "ok") {
-        if(res.data){
+        if (res.data) {
           document.getElementById("id").value = res.data.id;
           document.getElementById("nombre").value = res.data.descripcion;
           document.getElementById("stock").value = res.data.cantidad;
-          if( parseInt(res.data.cantidad) == 0){
+          if (parseInt(res.data.cantidad) == 0) {
             document.getElementById("cantidad").value = 0;
-          }else{
-           
+          } else {
             let cantidad_temporal;
-            if(res.cantidad_temp != null){
+            if (res.cantidad_temp != null) {
               cantidad_temporal = parseInt(res.cantidad_temp);
-            }else{
+            } else {
               cantidad_temporal = 0;
             }
-            if(cantidad_temporal >=  parseInt(res.data.cantidad)){
-                        
+            if (cantidad_temporal >= parseInt(res.data.cantidad)) {
               document.getElementById("cantidad").value = 0;
-              document.getElementById("cantidad").setAttribute("disabled","");
+              document.getElementById("cantidad").setAttribute("disabled", "");
               document.getElementById("agregar").classList.add("invisible");
-              document.getElementById("agregar").setAttribute("disabled","");
-              document.getElementById("adicional").setAttribute("disabled","");
-              document.getElementById("colAdicional").classList.add("invisible");
-            }else{
+              document.getElementById("agregar").setAttribute("disabled", "");
+              document.getElementById("adicional").setAttribute("disabled", "");
+              document
+                .getElementById("colAdicional")
+                .classList.add("invisible");
+            } else {
               document.getElementById("cantidad").value = 1;
               document.getElementById("cantidad").removeAttribute("disabled");
               document.getElementById("agregar").classList.remove("invisible");
               document.getElementById("agregar").removeAttribute("disabled");
-              if(parseFloat(res.data.adicional) > 0){
-                  
-              document.getElementById("colAdicional").classList.remove("invisible");
-              document.getElementById("adicional").removeAttribute("disabled");
-              }else{
-                document.getElementById("colAdicional").classList.add("invisible");
-                document.getElementById("adicional").setAttribute("disabled", "");
+              if (parseFloat(res.data.adicional) > 0) {
+                document
+                  .getElementById("colAdicional")
+                  .classList.remove("invisible");
+                document
+                  .getElementById("adicional")
+                  .removeAttribute("disabled");
+              } else {
+                document
+                  .getElementById("colAdicional")
+                  .classList.add("invisible");
+                document
+                  .getElementById("adicional")
+                  .setAttribute("disabled", "");
               }
             }
           }
           document.getElementById("precio").value = res.data.precio_venta;
-          if(res.data.id_medida != 2){
-          document.getElementById("precio_total").value = (
-            res.data.precio_venta * document.getElementById("cantidad").value
-          ).toFixed(2);
-          }else{
+          if (res.data.id_medida != 2) {
             document.getElementById("precio_total").value = (
-              (res.data.precio_venta * document.getElementById("cantidad").value)/1000
+              res.data.precio_venta * document.getElementById("cantidad").value
+            ).toFixed(2);
+          } else {
+            document.getElementById("precio_total").value = (
+              (res.data.precio_venta *
+                document.getElementById("cantidad").value) /
+              1000
             ).toFixed(2);
           }
-        }else{
-            
-        document.getElementById("id").value = "";
-        document.getElementById("nombre").value = "";
-        document.getElementById("stock").value = "";
-        document.getElementById("cantidad").value = "";
-        document.getElementById("cantidad").setAttribute("disabled", "");
-        document.getElementById("precio").value = "";
-        document.getElementById("precio_total").value = "";
-        document.getElementById("agregar").classList.add("invisible");
-        document.getElementById("agregar").setAttribute("disabled", "");
-        document.getElementById("colAdicional").classList.add("invisible");
-        document.getElementById("adicional").setAttribute("disabled", "");
+        } else {
+          document.getElementById("id").value = "";
+          document.getElementById("nombre").value = "";
+          document.getElementById("stock").value = "";
+          document.getElementById("cantidad").value = "";
+          document.getElementById("cantidad").setAttribute("disabled", "");
+          document.getElementById("precio").value = "";
+          document.getElementById("precio_total").value = "";
+          document.getElementById("agregar").classList.add("invisible");
+          document.getElementById("agregar").setAttribute("disabled", "");
+          document.getElementById("colAdicional").classList.add("invisible");
+          document.getElementById("adicional").setAttribute("disabled", "");
         }
-
-       
       } else {
         document.getElementById("id").value = "";
         document.getElementById("nombre").value = "";
@@ -1682,22 +1742,23 @@ function agregarCodigoProducto(e, codigo) {
         document.getElementById("nombre").value = res.descripcion;
         document.getElementById("stock").value = res.cantidad;
         document.getElementById("medida").value = res.id_medida;
-    
-          document.getElementById("cantidad").value = 1;
-          document.getElementById("cantidad").removeAttribute("disabled");
-          document.getElementById("agregar").classList.remove("invisible");
-          document.getElementById("agregar").removeAttribute("disabled");
-      
+
+        document.getElementById("cantidad").value = 1;
+        document.getElementById("cantidad").removeAttribute("disabled");
+        document.getElementById("agregar").classList.remove("invisible");
+        document.getElementById("agregar").removeAttribute("disabled");
+
         document.getElementById("precio").value = res.precio_compra;
-        if(res.id_medida != 2){
+        if (res.id_medida != 2) {
           document.getElementById("precio_total").value = (
             res.precio_compra * document.getElementById("cantidad").value
           ).toFixed(2);
-          }else{
-            document.getElementById("precio_total").value = (
-              (res.precio_compra * document.getElementById("cantidad").value)/1000
-            ).toFixed(2);
-          }
+        } else {
+          document.getElementById("precio_total").value = (
+            (res.precio_compra * document.getElementById("cantidad").value) /
+            1000
+          ).toFixed(2);
+        }
       } else {
         document.getElementById("id").value = "";
         document.getElementById("codigo").value = "";
@@ -1714,7 +1775,6 @@ function agregarCodigoProducto(e, codigo) {
     }
   };
 }
-
 
 /*function validacionStockAgregar(id_producto){
   const urlo = base_url + "Compras/validacionStock/"+ parseInt(id_producto);
@@ -1752,7 +1812,7 @@ function agregarCodigoProducto(e, codigo) {
 
 function agregarCodigoProductoVenta(e, codigo) {
   e.preventDefault();
-  const url = base_url + "Compras/buscarCodigoConStock/"+codigo;
+  const url = base_url + "Compras/buscarCodigoConStock/" + codigo;
   const http = new XMLHttpRequest();
   http.open("GET", url, true);
   http.send();
@@ -1770,50 +1830,54 @@ function agregarCodigoProductoVenta(e, codigo) {
         document.getElementById("codigo").value = res.data.codigo;
         document.getElementById("nombre").value = res.data.descripcion;
         document.getElementById("stock").value = res.data.cantidad;
-          if( parseInt(res.data.cantidad) == 0){
+        if (parseInt(res.data.cantidad) == 0) {
+          document.getElementById("cantidad").value = 0;
+          document.getElementById("cantidad").setAttribute("disabled", "");
+        } else {
+          let cantidad_temporal;
+          if (res.cantidad_temp != null) {
+            cantidad_temporal = parseInt(res.cantidad_temp);
+          } else {
+            cantidad_temporal = 0;
+          }
+          if (cantidad_temporal >= parseInt(res.data.cantidad)) {
             document.getElementById("cantidad").value = 0;
             document.getElementById("cantidad").setAttribute("disabled", "");
-          }else{
-            let cantidad_temporal;
-            if(res.cantidad_temp != null){
-              cantidad_temporal = parseInt(res.cantidad_temp);
-            }else{
-              cantidad_temporal = 0;
-            }
-            if(cantidad_temporal >=  parseInt(res.data.cantidad)){
-                        
-              document.getElementById("cantidad").value = 0;
-              document.getElementById("cantidad").setAttribute("disabled","");
-              document.getElementById("agregar").classList.add("invisible");
-              document.getElementById("agregar").setAttribute("disabled","");
-              document.getElementById("adicional").setAttribute("disabled","");
-              document.getElementById("adicional").classList.add("invisible");
-            }else{
-              document.getElementById("cantidad").value = 1;
-              document.getElementById("cantidad").removeAttribute("disabled");
-              document.getElementById("agregar").classList.remove("invisible");
-              document.getElementById("agregar").removeAttribute("disabled");
-              if(parseFloat(res.data.adicional) > 0){
-                  
-                document.getElementById("colAdicional").classList.remove("invisible");
-                document.getElementById("adicional").removeAttribute("disabled");
-                }else{
-                  document.getElementById("colAdicional").classList.add("invisible");
-                  document.getElementById("adicional").setAttribute("disabled", "");
-                }
+            document.getElementById("agregar").classList.add("invisible");
+            document.getElementById("agregar").setAttribute("disabled", "");
+            document.getElementById("adicional").setAttribute("disabled", "");
+            document.getElementById("adicional").classList.add("invisible");
+          } else {
+            document.getElementById("cantidad").value = 1;
+            document.getElementById("cantidad").removeAttribute("disabled");
+            document.getElementById("agregar").classList.remove("invisible");
+            document.getElementById("agregar").removeAttribute("disabled");
+            if (parseFloat(res.data.adicional) > 0) {
+              document
+                .getElementById("colAdicional")
+                .classList.remove("invisible");
+              document.getElementById("adicional").removeAttribute("disabled");
+            } else {
+              document
+                .getElementById("colAdicional")
+                .classList.add("invisible");
+              document.getElementById("adicional").setAttribute("disabled", "");
             }
           }
-      
+        }
+
         document.getElementById("precio").value = res.data.precio_venta;
-        if(res.data.id_medida != 2){
+        if (res.data.id_medida != 2) {
           document.getElementById("precio_total").value = (
             res.data.precio_venta * document.getElementById("cantidad").value
           ).toFixed(2);
-          }else{
-            document.getElementById("precio_total").value = (
-              (res.data.precio_venta * document.getElementById("cantidad").value)/1000
-            ).toFixed(2);
-          }
+        } else {
+          document.getElementById("precio_total").value = (
+            (res.data.precio_venta *
+              document.getElementById("cantidad").value) /
+            1000
+          ).toFixed(2);
+        }
       } else {
         document.getElementById("id").value = "";
         document.getElementById("codigo").value = "";
@@ -1831,7 +1895,6 @@ function agregarCodigoProductoVenta(e, codigo) {
     }
   };
 }
-
 
 function agregarCodigoCliente(e, id) {
   e.preventDefault();
@@ -1853,24 +1916,23 @@ function agregarCodigoCliente(e, id) {
         document.getElementById("dni").value = res.dni;
         document.getElementById("nombrecliente").value = res.nombre;
         document.getElementById("telefono").value = res.telefono;
-          document.getElementById("direccion").value = res.direccion;
-          document.getElementById("removerCliente").classList.remove("invisible");
-          document.getElementById("removerCliente").removeAttribute("disabled");
+        document.getElementById("direccion").value = res.direccion;
+        document.getElementById("removerCliente").classList.remove("invisible");
+        document.getElementById("removerCliente").removeAttribute("disabled");
       } else {
-        
         document.getElementById("idcliente").value = "";
         document.getElementById("dni").value = "";
         document.getElementById("nombrecliente").value = "";
         document.getElementById("telefono").value = "";
-          document.getElementById("direccion").value = "";
-          document.getElementById("removerCliente").classList.add("invisible");
-          document.getElementById("removerCliente").setAttribute("disabled", "");
+        document.getElementById("direccion").value = "";
+        document.getElementById("removerCliente").classList.add("invisible");
+        document.getElementById("removerCliente").setAttribute("disabled", "");
       }
     }
   };
 }
 
-function removerCliente(e){
+function removerCliente(e) {
   Swal.fire({
     icon: "success",
     title: "Cliente removido con éxito",
@@ -1881,33 +1943,29 @@ function removerCliente(e){
   document.getElementById("dni").value = "";
   document.getElementById("nombrecliente").value = "";
   document.getElementById("telefono").value = "";
-    document.getElementById("direccion").value = "";
-    document.getElementById("removerCliente").classList.add("invisible");
-    document.getElementById("removerCliente").setAttribute("disabled", "");
+  document.getElementById("direccion").value = "";
+  document.getElementById("removerCliente").classList.add("invisible");
+  document.getElementById("removerCliente").setAttribute("disabled", "");
 }
 
 function calcularPrecio(e) {
   e.preventDefault();
   let cant = parseInt(document.getElementById("cantidad").value);
   let subtotal = document.getElementById("precio_total");
-  if (
-    cant < 1 ||
-    isNaN(cant) 
-  ) {
+  if (cant < 1 || isNaN(cant)) {
     subtotal.value = "";
     document.getElementById("agregar").classList.add("invisible");
     document.getElementById("agregar").setAttribute("disabled", "");
   } else {
-
-    
-    if(document.getElementById("medida").value != 2){
-    subtotal.value = (cant * document.getElementById("precio").value).toFixed(
-      2
-    );
-    }else{
-      subtotal.value = ((cant * document.getElementById("precio").value)/1000).toFixed(
+    if (document.getElementById("medida").value != 2) {
+      subtotal.value = (cant * document.getElementById("precio").value).toFixed(
         2
       );
+    } else {
+      subtotal.value = (
+        (cant * document.getElementById("precio").value) /
+        1000
+      ).toFixed(2);
     }
 
     document.getElementById("agregar").classList.remove("invisible");
@@ -1915,22 +1973,18 @@ function calcularPrecio(e) {
   }
 }
 
-
 function calcularPrecioVenta(e) {
   e.preventDefault();
   let cant = parseInt(document.getElementById("cantidad").value);
   const stock = parseInt(document.getElementById("stock").value);
   let subtotal = document.getElementById("precio_total");
-  if ( (
-    cant < 1 ||
-    isNaN(cant)  ) 
-  ) {
+  if (cant < 1 || isNaN(cant)) {
     subtotal.value = "";
     document.getElementById("agregar").classList.add("invisible");
     document.getElementById("agregar").setAttribute("disabled", "");
   } else {
-    const id =     document.getElementById("id");
-    const url = base_url + "Compras/validacionStock/"+ id.value ;
+    const id = document.getElementById("id");
+    const url = base_url + "Compras/validacionStock/" + id.value;
     const http = new XMLHttpRequest();
     http.open("GET", url, true);
     http.send();
@@ -1939,27 +1993,30 @@ function calcularPrecioVenta(e) {
         const res = JSON.parse(this.responseText);
         if (res.msg == "ok") {
           let cantidad_temporal;
-          if(res.cantidad_temp != null){
+          if (res.cantidad_temp != null) {
             cantidad_temporal = parseInt(res.cantidad_temp);
-          }else{
+          } else {
             cantidad_temporal = 0;
           }
-          if(cant +  cantidad_temporal >  parseInt(res.cantidad)){
+          if (cant + cantidad_temporal > parseInt(res.cantidad)) {
             subtotal.value = "";
             document.getElementById("agregar").classList.add("invisible");
             document.getElementById("agregar").setAttribute("disabled", "");
-          }else{
-            if(res.medida != 2){
-              subtotal.value = (cant * document.getElementById("precio").value).toFixed(2);
-            }else{
-              subtotal.value = ((cant * document.getElementById("precio").value)/1000).toFixed(2);
+          } else {
+            if (res.medida != 2) {
+              subtotal.value = (
+                cant * document.getElementById("precio").value
+              ).toFixed(2);
+            } else {
+              subtotal.value = (
+                (cant * document.getElementById("precio").value) /
+                1000
+              ).toFixed(2);
             }
-     
-         document.getElementById("agregar").classList.remove("invisible");
-        document.getElementById("agregar").removeAttribute("disabled");
 
+            document.getElementById("agregar").classList.remove("invisible");
+            document.getElementById("agregar").removeAttribute("disabled");
           }
-
         }
       }
     };
@@ -2097,21 +2154,21 @@ function agregarProductoDetalleTemp(e) {
   http.send(new FormData(frm));
   http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-       /*    console.log(JSON.parse(this.responseText));
+      /*    console.log(JSON.parse(this.responseText));
     //  console.log(JSON.parse(this.responseText));
      // const reas = JSON.parse(this.responseText);
     // console.log(this.responseText);
       return false;
-*/   
+*/
       const res = JSON.parse(this.responseText);
-      
+
       if (res == "ok") {
         frm.reset();
         document.getElementById("id").removeAttribute("value");
         document.getElementById("cantidad").setAttribute("disabled", "");
         document.getElementById("agregar").classList.add("invisible");
         document.getElementById("agregar").setAttribute("disabled", "");
-        
+
         Swal.fire({
           icon: "success",
           title: "Producto agregado con éxito",
@@ -2144,15 +2201,14 @@ function agregarProductoDetalleTempVenta(e) {
   http.send(new FormData(frm));
   http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-    
-  /*    console.log(JSON.parse(this.responseText));
+      /*    console.log(JSON.parse(this.responseText));
     //  console.log(JSON.parse(this.responseText));
      // const reas = JSON.parse(this.responseText);
     // console.log(this.responseText);
       return false;
 */
       const res = JSON.parse(this.responseText);
-      
+
       if (res == "ok") {
         frm.reset();
         document.getElementById("id").removeAttribute("value");
@@ -2174,22 +2230,19 @@ function agregarProductoDetalleTempVenta(e) {
 }
 
 function cargarDetalle() {
-
   if (document.getElementById("tblDetalleTemp")) {
-
-  const url = base_url + "Compras/listar";
-  const http = new XMLHttpRequest();
-  http.open("GET", url, true);
-  http.send();
-  http.onreadystatechange = function () {
-    if (this.readyState == 4 && this.status == 200) {
-      const res = JSON.parse(this.responseText);
-      let html = "";
-      if (res != "") {
-
-        if(res.detalle.length > 0){
-          res.detalle.forEach((row) => {
-            html += `<tr>
+    const url = base_url + "Compras/listar";
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        const res = JSON.parse(this.responseText);
+        let html = "";
+        if (res != "") {
+          if (res.detalle.length > 0) {
+            res.detalle.forEach((row) => {
+              html += `<tr>
               <td>${row["id_producto"]}</td>
               <td>${row["descripcion"]}</td>
               <td>${row["cantidad"]}</td>
@@ -2197,50 +2250,46 @@ function cargarDetalle() {
               <td>${row["sub_total"]}</td>
               <td><button class="btn btn-danger" type="button" onclick="deleteDetalle(${row["id"]})"><i class="fas fa-trash-alt"></i></button></td>
             </tr>`;
-          });
-  
-         
+            });
+
             document.getElementById("tblDetalleTemp").innerHTML = html;
             //console.log(res.total_pagar.total);
-            document.getElementById("total").value = "S/. "+res.total_pagar.total;
-            document.getElementById("generarCompra").removeAttribute("disabled");
-            document.getElementById("generarCompra").classList.remove("invisible");
-          
-        }else{
-          document.getElementById("tblDetalleTemp").innerHTML = "";
+            document.getElementById("total").value =
+              "S/. " + res.total_pagar.total;
+            document
+              .getElementById("generarCompra")
+              .removeAttribute("disabled");
+            document
+              .getElementById("generarCompra")
+              .classList.remove("invisible");
+          } else {
+            document.getElementById("tblDetalleTemp").innerHTML = "";
             document.getElementById("total").value = "";
-            document.getElementById("generarCompra").setAttribute("disabled","");
+            document
+              .getElementById("generarCompra")
+              .setAttribute("disabled", "");
             document.getElementById("generarCompra").classList.add("invisible");
+          }
         }
-       
-      } 
-        
-
-      
-
-     
-    }
-  };
-}
+      }
+    };
+  }
 }
 
 function cargarDetalleVenta() {
-
   if (document.getElementById("tblDetalleTempVenta")) {
-
-  const url = base_url + "Compras/listarVenta";
-  const http = new XMLHttpRequest();
-  http.open("GET", url, true);
-  http.send();
-  http.onreadystatechange = function () {
-    if (this.readyState == 4 && this.status == 200) {
-      const res = JSON.parse(this.responseText);
-      let html = "";
-      if (res != "") {
-
-        if(res.detalle.length > 0){
-          res.detalle.forEach((row) => {
-            html += `<tr>
+    const url = base_url + "Compras/listarVenta";
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        const res = JSON.parse(this.responseText);
+        let html = "";
+        if (res != "") {
+          if (res.detalle.length > 0) {
+            res.detalle.forEach((row) => {
+              html += `<tr>
               <td>${row["id_producto"]}</td>
               <td>${row["descripcion_detalle"]}</td>
               <td>${row["cantidad"]}</td>
@@ -2248,95 +2297,94 @@ function cargarDetalleVenta() {
               <td>${row["sub_total"]}</td>
               <td><button class="btn btn-danger" type="button" onclick="deleteDetalleVenta(${row["id"]})"><i class="fas fa-trash-alt"></i></button></td>
             </tr>`;
-          });
-  
-         
+            });
+
             document.getElementById("tblDetalleTempVenta").innerHTML = html;
-            document.getElementById("total").value = "S/. "+res.total_pagar.total;
+            document.getElementById("total").value =
+              "S/. " + res.total_pagar.total;
             document.getElementById("generarVenta").removeAttribute("disabled");
-            document.getElementById("generarVenta").classList.remove("invisible");
-            document.getElementById("anularVenta").removeAttribute("disabled","");
-            document.getElementById("anularVenta").classList.remove("invisible");
-          
-        }else{
-          document.getElementById("tblDetalleTempVenta").innerHTML = "";
+            document
+              .getElementById("generarVenta")
+              .classList.remove("invisible");
+            document
+              .getElementById("anularVenta")
+              .removeAttribute("disabled", "");
+            document
+              .getElementById("anularVenta")
+              .classList.remove("invisible");
+          } else {
+            document.getElementById("tblDetalleTempVenta").innerHTML = "";
             document.getElementById("total").value = "";
-            document.getElementById("generarVenta").setAttribute("disabled","");
+            document
+              .getElementById("generarVenta")
+              .setAttribute("disabled", "");
             document.getElementById("generarVenta").classList.add("invisible");
-            document.getElementById("anularVenta").setAttribute("disabled","");
+            document.getElementById("anularVenta").setAttribute("disabled", "");
             document.getElementById("anularVenta").classList.add("invisible");
+          }
         }
-       
-      } 
-        
-
-      
-
-     
-    }
-  };
-}
+      }
+    };
+  }
 }
 
-function deleteDetalle(id){
-  const url = base_url + "Compras/deleteDetalle/"+id;
+function deleteDetalle(id) {
+  const url = base_url + "Compras/deleteDetalle/" + id;
   const http = new XMLHttpRequest();
   http.open("GET", url, true);
   http.send();
   http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-            const res = JSON.parse(this.responseText);
-            if(res == "ok"){
-              Swal.fire({
-                icon: "success",
-                title: "Producto eliminado con éxito",
-                timer: 1700,
-                showConfirmButton: false,
-              });
-              cargarDetalle();
-            }else{
-              Swal.fire({
-                icon: "error",
-                title: "Error",
-                timer: 1700,
-                showConfirmButton: false,
-              });
-            }
-
+      const res = JSON.parse(this.responseText);
+      if (res == "ok") {
+        Swal.fire({
+          icon: "success",
+          title: "Producto eliminado con éxito",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+        cargarDetalle();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+      }
     }
   };
 }
 
-function deleteDetalleVenta(id){
-  const url = base_url + "Compras/deleteDetalleVenta/"+id;
+function deleteDetalleVenta(id) {
+  const url = base_url + "Compras/deleteDetalleVenta/" + id;
   const http = new XMLHttpRequest();
   http.open("GET", url, true);
   http.send();
   http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-            const res = JSON.parse(this.responseText);
-            if(res == "ok"){
-              Swal.fire({
-                icon: "success",
-                title: "Producto eliminado con éxito",
-                timer: 1700,
-                showConfirmButton: false,
-              });
-              cargarDetalleVenta();
-            }else{
-              Swal.fire({
-                icon: "error",
-                title: "Error",
-                timer: 1700,
-                showConfirmButton: false,
-              });
-            }
-
+      const res = JSON.parse(this.responseText);
+      if (res == "ok") {
+        Swal.fire({
+          icon: "success",
+          title: "Producto eliminado con éxito",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+        cargarDetalleVenta();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          timer: 1700,
+          showConfirmButton: false,
+        });
+      }
     }
   };
 }
 
-function generarCompra(e){
+function generarCompra(e) {
   e.preventDefault();
   Swal.fire({
     title: "¿Está seguro de efectuar la compra?",
@@ -2360,14 +2408,13 @@ function generarCompra(e){
               icon: "success",
               timer: 2500,
               title: "Compra generada exitosamente",
-              showConfirmButton: false
+              showConfirmButton: false,
             });
-            const ruta = base_url + 'Compras/generarPdf/'+res.id_compra;
+            const ruta = base_url + "Compras/generarPdf/" + res.id_compra;
             window.open(ruta);
-            setTimeout(()=>{
+            setTimeout(() => {
               window.location.reload();
-            },300);
-            
+            }, 300);
           } else {
             Swal.fire({
               icon: "error",
@@ -2380,11 +2427,11 @@ function generarCompra(e){
   });
 }
 
-function generarVenta(e){
+function generarVenta(e) {
   e.preventDefault();
   let idcliente = document.getElementById("idcliente");
-  if(idcliente.value == ""){
-      idcliente.value = 1;
+  if (idcliente.value == "") {
+    idcliente.value = 1;
   }
   Swal.fire({
     title: "¿Está seguro de efectuar la venta?",
@@ -2396,7 +2443,7 @@ function generarVenta(e){
     confirmButtonText: "Sí",
   }).then((result) => {
     if (result.isConfirmed) {
-      const url = base_url + "Compras/registrarVenta/"+ idcliente.value ;
+      const url = base_url + "Compras/registrarVenta/" + idcliente.value;
       const http = new XMLHttpRequest();
       http.open("GET", url, true);
       http.send();
@@ -2408,20 +2455,22 @@ function generarVenta(e){
               icon: "success",
               timer: 2500,
               title: "Venta generada exitosamente",
-              showConfirmButton: false
+              showConfirmButton: false,
             });
-            const ruta = base_url + 'Compras/generarPdfVenta/'+res.id_venta;
+            const ruta = base_url + "Compras/generarPdfVenta/" + res.id_venta;
             window.open(ruta);
-            setTimeout(()=>{
+            setTimeout(() => {
               window.location.reload();
-            },300);
-            
-          }else if(res.msg = "productoerror"){
-                  
+            }, 300);
+          } else if ((res.msg = "productoerror")) {
             Swal.fire({
               icon: "error",
-              title: "Error en el producto "+res.data.descripcion,
-              text: "La cantidad de "+res.cantidad_temp+" sobrepasa al stock actual de "+res.data.cantidad
+              title: "Error en el producto " + res.data.descripcion,
+              text:
+                "La cantidad de " +
+                res.cantidad_temp +
+                " sobrepasa al stock actual de " +
+                res.data.cantidad,
             });
           } else {
             Swal.fire({
@@ -2435,8 +2484,7 @@ function generarVenta(e){
   });
 }
 
-
-function anularVenta(e){
+function anularVenta(e) {
   e.preventDefault();
   Swal.fire({
     title: "¿Está seguro de anular la venta?",
@@ -2460,18 +2508,21 @@ function anularVenta(e){
               icon: "success",
               timer: 2500,
               title: "Venta anulada exitosamente",
-              showConfirmButton: false
+              showConfirmButton: false,
             });
-            
-  document.getElementById("idcliente").value = "";
-  document.getElementById("dni").value = "";
-  document.getElementById("nombrecliente").value = "";
-  document.getElementById("telefono").value = "";
-    document.getElementById("direccion").value = "";
-    document.getElementById("removerCliente").classList.add("invisible");
-    document.getElementById("removerCliente").setAttribute("disabled", "");
+
+            document.getElementById("idcliente").value = "";
+            document.getElementById("dni").value = "";
+            document.getElementById("nombrecliente").value = "";
+            document.getElementById("telefono").value = "";
+            document.getElementById("direccion").value = "";
+            document
+              .getElementById("removerCliente")
+              .classList.add("invisible");
+            document
+              .getElementById("removerCliente")
+              .setAttribute("disabled", "");
             cargarDetalleVenta();
-            
           } else {
             Swal.fire({
               icon: "error",
@@ -2483,7 +2534,6 @@ function anularVenta(e){
     }
   });
 }
-
 
 function listarHistorialCompras() {
   if (document.getElementById("tblHistorialCompra")) {
@@ -2535,8 +2585,8 @@ function listarHistorialVentas() {
         url: base_url + "Compras/listarHistorialVentas",
         dataSrc: "",
       },
-      
-      order: [[0, 'desc']],
+
+      order: [[0, "desc"]],
       columns: [
         {
           data: "id",
@@ -2564,9 +2614,9 @@ function listarHistorialVentas() {
   }
 }
 
-function AnularVentaId(id){
+function AnularVentaId(id) {
   Swal.fire({
-    title: "¿Está seguro de anular la venta con el ID "+id,
+    title: "¿Está seguro de anular la venta con el ID " + id,
     icon: "warning",
     showCancelButton: true,
     cancelButtonText: "No",
@@ -2575,7 +2625,7 @@ function AnularVentaId(id){
     confirmButtonText: "Sí",
   }).then((result) => {
     if (result.isConfirmed) {
-      const url = base_url + "Compras/anularVentaEstado/"+id;
+      const url = base_url + "Compras/anularVentaEstado/" + id;
       const http = new XMLHttpRequest();
       http.open("GET", url, true);
       http.send();
@@ -2587,7 +2637,7 @@ function AnularVentaId(id){
               icon: "success",
               timer: 2500,
               title: "Venta anulada exitosamente",
-              showConfirmButton: false
+              showConfirmButton: false,
             });
             tblHistorialVenta.ajax.reload(null, false);
           } else {
@@ -2604,7 +2654,7 @@ function AnularVentaId(id){
 
 function pagadoVenta(id) {
   Swal.fire({
-    title: "¿Está seguro de actualizar la venta con ID "+id+" a pagado?",
+    title: "¿Está seguro de actualizar la venta con ID " + id + " a pagado?",
     icon: "warning",
     showCancelButton: true,
     cancelButtonText: "No",
@@ -2640,10 +2690,9 @@ function pagadoVenta(id) {
   });
 }
 
-
 function pendienteVenta(id) {
   Swal.fire({
-    title: "¿Está seguro de actualizar la venta con ID "+id+" a pendiente?",
+    title: "¿Está seguro de actualizar la venta con ID " + id + " a pendiente?",
     icon: "warning",
     showCancelButton: true,
     cancelButtonText: "No",
@@ -2679,31 +2728,154 @@ function pendienteVenta(id) {
   });
 }
 
-
-function modificarEmpresa(){
- const frm = document.getElementById("frmEmpresa");
- const url = base_url + "Administracion/modificar";
- const http = new XMLHttpRequest();
- http.open("POST", url, true);
- http.send(new FormData(frm));
- http.onreadystatechange = function () {
-   if (this.readyState == 4 && this.status == 200) {
-    
+function modificarEmpresa() {
+  const frm = document.getElementById("frmEmpresa");
+  const url = base_url + "Administracion/modificar";
+  const http = new XMLHttpRequest();
+  http.open("POST", url, true);
+  http.send(new FormData(frm));
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
       const res = JSON.parse(this.responseText);
-     if (res == "ok") {
-       Swal.fire({
-         icon: "success",
-         timer: 2500,
-         title: "Configuración actualizado exitosamente",
-         showConfirmButton: false
-       });
-       
-     } else {
-       Swal.fire({
-         icon: "error",
-         title: res,
-       });
-     }
-   }
- };
+      if (res == "ok") {
+        Swal.fire({
+          icon: "success",
+          timer: 2500,
+          title: "Configuración actualizado exitosamente",
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: res,
+        });
+      }
+    }
+  };
+}
+
+reporteStock();
+
+function reporteStock() {
+
+  if(document.getElementById("stockMinimo")){
+    const url = base_url + "Administracion/reporteStock";
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        const res = JSON.parse(this.responseText);
+        let nombreu = [];
+        let nombreg = [];
+        let cantidadu = [];
+        let cantidadg = [];
+        for(let i = 0; i <res.productosg.length;i++){
+          nombreg.push(res.productosg[i]["descripcion"]);
+          cantidadg.push(res.productosg[i]["cantidad"]);
+       }
+
+       for(let j = 0; j <res.productosu.length;j++){
+         nombreu.push(res.productosu[j]["descripcion"]);
+         cantidadu.push(res.productosu[j]["cantidad"]);
+      }
+  
+        const ctx1 = document.getElementById("stockMinimo");
+        const ctx11 = document.getElementById("stockMinimo2");
+  
+        new Chart(ctx1, {
+          type: "pie",
+          data: {
+            labels: nombreu,
+            datasets: [
+              {
+                data: cantidadu,
+                backgroundColor: ["#dc3545", "#007bff", "#28a745", "#ffc107","#E0489C","#F79A31","#8F31F7","#91E01D","#31437B","#302DBF"],
+              },
+            ],
+          },
+        });
+
+        new Chart(ctx11, {
+          type: "pie",
+          data: {
+            labels: nombreg,
+            datasets: [
+              {
+                data: cantidadg,
+                backgroundColor: ["#dc3545", "#007bff", "#28a745", "#ffc107","#E0489C","#F79A31","#8F31F7","#91E01D","#31437B","#302DBF"],
+              },
+            ],
+          },
+        });
+  
+      }
+    };
+  }
+
+  
+}
+
+reporteProductosVendidos();
+
+function reporteProductosVendidos(){
+
+
+  
+  if(document.getElementById("ProductosVendidos")){
+    const url = base_url + "Administracion/productosVendidos";
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        const res = JSON.parse(this.responseText);
+        let nombreu = [];
+        let nombresg = [];
+        let cantidadu = [];
+        let cantidadsg = [];
+        for(let i = 0; i <res.productosg.length;i++){
+           nombresg.push(res.productosg[i]["descripcion"]);
+           cantidadsg.push(res.productosg[i]["total"]);
+        }
+
+        for(let j = 0; j <res.productosu.length;j++){
+          nombreu.push(res.productosu[j]["descripcion"]);
+          cantidadu.push(res.productosu[j]["total"]);
+       }
+
+        const ctx2 = document.getElementById("ProductosVendidos");
+        const ctx22 = document.getElementById("ProductosVendidos2");
+
+         new Chart(ctx2, {
+    type: "doughnut",
+    data: {
+      labels: nombreu,
+      datasets: [
+        {
+          data: cantidadu,
+          backgroundColor: ["#dc3545", "#007bff", "#28a745", "#ffc107","#E0489C","#F79A31","#8F31F7","#91E01D","#31437B","#302DBF"],
+        },
+      ],
+    },
+  });
+
+  new Chart(ctx22, {
+    type: "doughnut",
+    data: {
+      labels: nombresg,
+      datasets: [
+        {
+          data: cantidadsg,
+          backgroundColor: ["#dc3545", "#007bff", "#28a745", "#ffc107","#E0489C","#F79A31","#8F31F7","#91E01D","#31437B","#302DBF"],
+        },
+      ],
+    },
+  });
+
+  
+      }
+    };
+  }
+
 }

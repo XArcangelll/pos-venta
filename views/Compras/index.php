@@ -74,7 +74,7 @@ include "Views/Templates/header.php";
 
 <div class="table-responsive">
 
-<table class="table table-borderless text-center mt-2 pt-2">
+<table class="table table-hover table-borderless text-center mt-2 pt-2">
     <thead  class="table-dark">
         <tr>
         <th>ID</th>

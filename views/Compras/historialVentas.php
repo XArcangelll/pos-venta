@@ -15,7 +15,7 @@
                     </div>
                 </div> 
     </div>
-
+    <div class="table-responsive">
     
 <table class="table table-borderless text-center mt-2 pt-2" id="tblHistorialVenta">
     <thead class="table-dark">
@@ -32,6 +32,7 @@
     <tbody>
     </tbody>
 </table>
+    </div>
 
   
 

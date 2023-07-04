@@ -35,4 +35,43 @@ class AdministracionModel extends Query
         return $res;
     }
 
+    public function getDatos(string $table)
+    {
+        $sql = "SELECT COUNT(*) as total from $table";
+        $data = $this->select($sql);
+        return $data;
+    }
+
+    public function getVentas()
+    {
+        $sql = "SELECT COUNT(*) as total from ventas WHERE fecha > CURDATE()";
+        $data = $this->select($sql);
+        return $data;
+    }
+
+    public function getGananciasHoy()
+    {
+        $sql = "SELECT SUM(total) as total from ventas WHERE fecha > CURDATE()";
+        $data = $this->select($sql);
+        return $data;
+    }
+
+    public function getStockMinimo(){
+        $sql = "SELECT * FROM productos WHERE cantidad < 1000 and id_medida = 2  ORDER BY cantidad DESC LIMIT 10";
+        $sql2 = "SELECT * FROM productos WHERE  cantidad < 10 and id_medida != 2 ORDER BY cantidad DESC LIMIT 10";
+        $data["productosg"] = $this->selectAll($sql);
+        $data["productosu"] = $this->selectAll($sql2);
+        return $data;
+    }
+
+    public function getProductosVendidos(){
+        $sql = "SELECT p.descripcion, SUM(d.cantidad) as total FROM detalle_ventas d INNER JOIN Productos p ON p.id = d.id_producto where p.id_medida = 2 group by d.id_producto order by d.cantidad DESC LIMIT 10";
+        $sql2 = "SELECT p.descripcion, SUM(d.cantidad) as total FROM detalle_ventas d INNER JOIN Productos p ON p.id = d.id_producto where p.id_medida != 2 group by d.id_producto order by d.cantidad DESC LIMIT 10";
+        $data["productosg"] = $this->selectAll($sql);
+        $data["productosu"] = $this->selectAll($sql2);
+        return $data;
+    }
+
+
+
 }

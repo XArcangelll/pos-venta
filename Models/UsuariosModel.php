@@ -115,5 +115,13 @@ class UsuariosModel extends Query
                 return $data;
         }
 
+        public function modificarPass(string $clave, int $id){
+                $sql = "UPDATE usuarios set clave = ? WHERE id = ? ";
+                $datos = array($clave,$id);
+                $data = $this->save($sql,$datos);
+                return $data;
+        }
+
+
        
 }

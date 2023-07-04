@@ -21,6 +21,8 @@ class Compras extends Controller
     public function ventas()
     {
         
+        //cdn select2 si quieres usar libreria para hacer combobox de clientes en vez de boton buscar
+
         if (empty($_SESSION["activo"])) {
             header("location: " . constant("URL"));
         }

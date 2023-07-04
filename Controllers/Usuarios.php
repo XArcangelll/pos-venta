@@ -179,8 +179,46 @@ class Usuarios extends Controller
         die();
     }
 
-    public function salir(){
+    function cambiarPass()
+    {
+
+        $actual = $_POST["clave_actual"];
+        $nueva = $_POST["clave_nueva"];
+        $confirmar = $_POST["confirmar_clave"];
+        if (empty($actual) || empty($nueva) || empty($confirmar)) {
+            $msg = "Todos los Campos son obligatorios";
+        } else {
+
+            if ($nueva != $confirmar) {
+                $msg = "Las contraseñas no coinciden";
+            } else {
+                $id = $_SESSION["id_usuario"];
+                $data = $this->model->editarUser($id);
+                if(!empty($data)){
+                    
+                if ( md5($actual) == $data["clave"]) {
+                    $verificar = $this->model->modificarPass(md5($nueva), $id);
+                    if ($verificar == 1) {
+                        $msg = "ok";
+                    } else {
+                        $msg = "Error al modificar la contraseña";
+                    }
+                } else {
+                    $msg = "La contraseña actual incorrecta";
+                }
+                }else{
+                    $msg = "No existen datos del usuario";
+                }
+            }
+        }
+
+        echo json_encode($msg,JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function salir()
+    {
         session_destroy();
-        header("location: ".constant("URL"));
+        header("location: " . constant("URL"));
     }
 }
