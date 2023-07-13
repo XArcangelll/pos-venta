@@ -7,6 +7,7 @@ let tblProductos;
 let tblHistorialCompra;
 let tblHistorialVenta;
 let tblProductosModal;
+let tblArqueo;
 document.addEventListener("DOMContentLoaded", function () {
   listarUsuarios();
   listarClientes();
@@ -20,7 +21,12 @@ document.addEventListener("DOMContentLoaded", function () {
   cargarDetalleVenta();
   listarHistorialCompras();
   listarHistorialVentas();
+  listarArqueo();
+
+
+
 });
+
 
 function frmCambiarPass(e) {
   e.preventDefault();
@@ -95,8 +101,13 @@ function frmLogin(e) {
       if (this.readyState == 4 && this.status == 200) {
         console.log = this.responseText;
         const res = JSON.parse(this.responseText);
-        if (res == "ok") {
-          window.location = base_url + "Administracion/Home";
+        if (res.msg == "ok") {
+          if(res.id_rol == 1){
+            window.location = base_url + "Administracion/Home";
+          }else{
+            window.location = base_url + "Clientes";
+          }
+         
           /* Swal.fire({
                             icon: "success",
                             title: 'Ingresando al Sistema',
@@ -2290,11 +2301,13 @@ function cargarDetalleVenta() {
           if (res.detalle.length > 0) {
             res.detalle.forEach((row) => {
               html += `<tr>
-              <td>${row["id_producto"]}</td>
+              <td>${row["id"]}</td>
               <td>${row["descripcion_detalle"]}</td>
               <td>${row["cantidad"]}</td>
+              <td><input class="form-control w-25 mx-auto" placeholder="Descuento" type="text" onkeyup="calcularDescuento(event,${row["id"]});" ></td>
+              <td>${row["descuento"]}</td>
               <td>${row["precio"]}</td>
-              <td>${row["sub_total"]}</td>
+              <td>${ (parseFloat(row["sub_total"]) - parseFloat(row["descuento"]))} </td>
               <td><button class="btn btn-danger" type="button" onclick="deleteDetalleVenta(${row["id"]})"><i class="fas fa-trash-alt"></i></button></td>
             </tr>`;
             });
@@ -2326,6 +2339,69 @@ function cargarDetalleVenta() {
       }
     };
   }
+}
+
+function calcularDescuento(e,id){
+  e.preventDefault();
+  
+  if(e.which == 13){
+
+    if(isNaN(id) || !Number.isInteger(id) || (parseInt(id) < 0 ) || id == "" ){
+      return false;
+    }
+
+    if(e.target.value == ""){
+      Swal.fire({
+        icon: "warning",
+        timer: 2500,
+        title: "Ingrese el descuento",
+        showConfirmButton: false,
+      });
+    }else{
+  
+          if(e.target.value < 0 || isNaN(e.target.value)){
+            Swal.fire({
+              icon: "warning",
+              timer: 2500,
+              title: "El descuento debe ser un número y mayor a 0",
+              showConfirmButton: false,
+            });
+          }else{
+            const url = base_url + "Compras/calcularDescuento/" + id + "/" + e.target.value;
+            const http = new XMLHttpRequest();
+            http.open("GET",url,true);
+            http.send();
+            http.onreadystatechange = function(){
+              if(this.readyState == 4 && this.status == 200){
+                const res = JSON.parse(this.responseText);
+
+                if(res == "ok"){
+                  Swal.fire({
+                    icon: "success",
+                    title: "Descuento aplicado con éxito",
+                    timer: 1700,
+                    showConfirmButton: false,
+                  });
+                  cargarDetalleVenta();
+                }else{
+                  Swal.fire({
+                    icon: "error",
+                    title: res,
+                    timer: 1700,
+                    showConfirmButton: false,
+                  });
+                }
+              }
+            }
+  
+          }
+  
+         
+  
+      }
+  }
+
+  
 }
 
 function deleteDetalle(id) {
@@ -2462,7 +2538,7 @@ function generarVenta(e) {
             setTimeout(() => {
               window.location.reload();
             }, 300);
-          } else if ((res.msg = "productoerror")) {
+          } else if (res.msg == "productoerror") {
             Swal.fire({
               icon: "error",
               title: "Error en el producto " + res.data.descripcion,
@@ -2472,7 +2548,14 @@ function generarVenta(e) {
                 " sobrepasa al stock actual de " +
                 res.data.cantidad,
             });
-          } else {
+          }else if(res.msg == "cerrada"){
+              Swal.fire({
+                icon: "warning",
+                timer: 2500,
+                title: "La caja está cerrada",
+                showConfirmButton: false,
+              });
+          }else {
             Swal.fire({
               icon: "error",
               title: res.msg,
@@ -2572,20 +2655,73 @@ function listarHistorialCompras() {
   }
 }
 
+function mostrarTodo(event){
+    event.preventDefault();
+    document.getElementById("start_date").value = "";
+    document.getElementById("end_date").value = "";
+    //tblHistorialVenta.ajax.reload(null, false);
+    listarHistorialVentas();
+}
+
+function filtrarFecha(event){
+  event.preventDefault();
+  //tblHistorialVenta.ajax.reload(null, false);
+  listarHistorialVentas();
+}
+
+
 function listarHistorialVentas() {
   if (document.getElementById("tblHistorialVenta")) {
+
+    $.datepicker.regional['es'] = {
+      closeText: 'Cerrar',
+      prevText: '< Ant',
+      nextText: 'Sig >',
+      currentText: 'Hoy',
+      monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+      monthNamesShort: ['Ene','Feb','Mar','Abr', 'May','Jun','Jul','Ago','Sep', 'Oct','Nov','Dic'],
+      dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+      dayNamesShort: ['Dom','Lun','Mar','Mié','Juv','Vie','Sáb'],
+      dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','Sá'],
+      weekHeader: 'Sm',
+      dateFormat: 'dd/mm/yy',
+      firstDay: 1,
+      isRTL: false,
+      showMonthAfterYear: false,
+      yearSuffix: ''
+      };
+      $.datepicker.setDefaults($.datepicker.regional['es']);
+
+      
+  $( "#start_date" ).datepicker({
+    dateFormat: "yy-mm-dd",
+  });
+
+  $( "#end_date" ).datepicker({
+    dateFormat: "yy-mm-dd",
+  });
+
+  let startdate = document.getElementById("start_date").value;
+  let enddate = document.getElementById("end_date").value;
+  let urlDato = "";
+  if(startdate != "" && enddate != ""){
+    urlDato = base_url + "Compras/listarHistorialVentas/"+startdate+"/"+enddate;
+  }else{
+    urlDato = base_url + "Compras/listarHistorialVentas"
+  }
+
     tblHistorialVenta = $("#tblHistorialVenta").DataTable({
+     
       destroy: true,
       responsive: true,
-
+      
       language: {
         url: base_url + "Assets/json/español.json",
       },
       ajax: {
-        url: base_url + "Compras/listarHistorialVentas",
+        url: urlDato,
         dataSrc: "",
       },
-
       order: [[0, "desc"]],
       columns: [
         {
@@ -2610,6 +2746,7 @@ function listarHistorialVentas() {
           data: "acciones",
         },
       ],
+      
     });
   }
 }
@@ -2878,4 +3015,231 @@ function reporteProductosVendidos(){
     };
   }
 
+}
+
+
+function arqueoCaja(e){
+  e.preventDefault();
+  document.getElementById("my-modal-title").innerHTML = "Arqueo Caja";
+  document.getElementById("btnAccion").innerHTML = "Abrir Caja";
+  document.getElementById("id").value = "";
+  const frm = document.getElementById("frmAbrirCaja");
+  document.getElementById("monto_inicial").removeAttribute("disabled");
+  document.getElementById("ocultarInfo").setAttribute("hidden","");
+  document.getElementById("id").value = "";
+  frm.reset();
+}
+
+function cerrarFormArqueo(e){
+  e.preventDefault();
+  document.getElementById("frmAbrirCaja").reset();
+}
+
+function abrirArqueo(e){
+  e.preventDefault();
+  const monto_inicial = document.getElementById("monto_inicial").value;
+  if(monto_inicial == "" ){
+    Swal.fire({
+      icon: "warning",
+      timer: 1700,
+      title: "Ingrese el monto inicial",
+      showConfirmButton: false,
+    });
+  }else if(monto_inicial < 0  || isNaN(monto_inicial)){
+    Swal.fire({
+      icon: "warning",
+      timer: 1700,
+      title: "El monto debe ser numero positivo o 0",
+      showConfirmButton: false,
+    });
+  }else{
+    const frm = document.getElementById("frmAbrirCaja");
+    const url = base_url + "Cajas/abrirArqueo";
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.send(new FormData(frm));
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+          if(res == "ok"){
+            Swal.fire({
+              icon: "success",
+              timer: 1700,
+              title: "Caja abierta con éxito",
+              showConfirmButton: false,
+            });
+            frm.reset();
+            $("#abrir_caja").modal("hide");
+            tblArqueo.ajax.reload(null, false);
+          }else if(res == "existe"){
+            Swal.fire({
+              icon: "warning",
+              timer: 1700,
+              title: "La caja ya esta abierta ",
+              showConfirmButton: false,
+            });
+            
+            frm.reset();
+            $("#abrir_caja").modal("hide");
+          }else if(res == "oka"){
+            Swal.fire({
+              icon: "success",
+              timer: 1700,
+              title: "Caja cerrada con éxito",
+              showConfirmButton: false,
+            });
+            frm.reset();
+            $("#abrir_caja").modal("hide");
+            tblArqueo.ajax.reload(null, false);
+          }else if(res == "errora"){
+            Swal.fire({
+              icon: "error",
+              timer: 1700,
+              title: "Hubo un error al cerrar la caja",
+              showConfirmButton: false,
+            });
+          }
+          else{
+            Swal.fire({
+              icon: "error",
+              timer: 1700,
+              title: res,
+              showConfirmButton: false,
+            });
+          }
+
+      }
+    };
+  }
+}
+
+
+function listarArqueo(){
+  if (document.getElementById("tblArqueo")) {
+    tblArqueo = $("#tblArqueo").DataTable({
+      destroy: true,
+      responsive: true,
+
+      language: {
+        url: base_url + "Assets/json/español.json",
+      },
+      ajax: {
+        url: base_url + "Cajas/listarArqueo",
+        dataSrc: "",
+      },
+      order: [[0, "desc"]],
+      columns: [
+        {
+          data: "id",
+        },
+        {
+          data: "usuario",
+        },
+        {
+          data: "monto_inicial",
+        },
+        {
+          data: "monto_final",
+        },
+        {
+          data: "fecha_apertura",
+        },
+        {
+          data: "fecha_cierre",
+        },
+        {
+          data: "total_ventas",
+        },
+        {
+          data: "monto_total",
+        },
+        {
+          data: "estado",
+        },
+      ],
+    });
+  }
+}
+
+function cerrarCaja(e){
+  e.preventDefault();
+  const url = base_url + "Cajas/getVentas";
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+        const res = JSON.parse(this.responseText);
+        if(res.inicial.monto_inicial){
+          
+        document.getElementById("monto_inicial").value = res.inicial.monto_inicial;
+        if(res.monto_total.total){
+          document.getElementById("monto_total").value = (parseFloat(res.inicial.monto_inicial) + parseFloat(res.monto_total.total)).toFixed(2);
+        }else{
+          document.getElementById("monto_total").value = res.inicial.monto_inicial;
+        }
+      
+        }else{
+          document.getElementById("monto_inicial").value = 0;
+          if(res.monto_total.total){
+            document.getElementById("monto_total").value =  (parseFloat(res.monto_total.total)).toFixed(2);
+          }else{
+            document.getElementById("monto_total").value = 0;
+          }
+          
+        }
+
+        if(res.inicial.id){
+          
+          document.getElementById("id").value = res.inicial.id;
+          }else{
+            document.getElementById("id").value = "";
+          }
+
+          if(res.monto_total.total){
+            document.getElementById("monto_final").value = res.monto_total.total;
+          }else{
+            document.getElementById("monto_final").value = 0;
+          }
+       
+        document.getElementById("total_ventas").value = res.total_ventas.total;
+        document.getElementById("monto_inicial").setAttribute("disabled","");
+        document.getElementById("ocultarInfo").removeAttribute("hidden");
+        document.getElementById("btnAccion").innerHTML = "Cerrar Caja";
+        $("#abrir_caja").modal("show");
+        
+
+    }
+  };
+}
+
+
+function registrarPermisos(e){  
+    e.preventDefault();
+    const url = base_url + "Usuarios/registrarPermiso";
+    const frm = document.getElementById("formulario");
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.send(new FormData(frm));
+    http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+       
+          const res = JSON.parse(this.responseText);
+            if(res != ""){
+              Swal.fire({
+                icon: res.icono,
+                timer: 1700,
+                title: res.msg,
+                showConfirmButton: false,
+              });
+            }else{
+              Swal.fire({
+                icon: "error",
+                timer: 1700,
+                title: "Error no identificado",
+                showConfirmButton: false,
+              });
+            }
+      }
+    };
 }

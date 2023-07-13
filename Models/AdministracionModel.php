@@ -51,7 +51,7 @@ class AdministracionModel extends Query
 
     public function getGananciasHoy()
     {
-        $sql = "SELECT SUM(total) as total from ventas WHERE fecha > CURDATE()";
+        $sql = "SELECT SUM(total) as total from ventas WHERE fecha > CURDATE() and estado = 1";
         $data = $this->select($sql);
         return $data;
     }

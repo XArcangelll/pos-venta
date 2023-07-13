@@ -5,16 +5,20 @@ class Usuarios extends Controller
     public function __construct()
     {
         session_start();
-
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        } else {
+            if ($_SESSION["rol"] != 1) {
+                header("location: " . constant("URL") . "Clientes");
+            }
+        }
         parent::__construct();
     }
 
 
     public function index()
     {
-        if (empty($_SESSION["activo"])) {
-            header("location: " . constant("URL"));
-        }
+
         $data['cajas'] =  $this->model->getCajas();
         $this->views->getView($this, "index", $data);
     }
@@ -26,14 +30,26 @@ class Usuarios extends Controller
         for ($i = 0; $i < count($data); $i++) {
             if ($data[$i]['estado'] == 1) {
                 $data[$i]['estado'] = ' <h5><span class="badge bg-success">Activo</span></h5>';
+                if($data[$i]["id_rol"] == 1){
+                    $data[$i]['acciones'] =  '<div>
+                    <button type="button"   class="btn btn-secondary mx-2 " disabled><i class="fas fa-key"></i></button>
+                    <button type="button"   class="btn btn-secondary mx-2 " disabled><i class="fas fa-edit"></i></button>
+                    <button type="button"  class="btn btn-secondary disabled" ><i class="fas fa-trash"></i></button>
+                    <button type="button"  class="btn btn-secondary disabled" ><i class="fa fa-rotate"></i></button>
+                    </div>';
+                }else{
+                    
                 $data[$i]['acciones'] =  '<div>
+                <a href="' . constant("URL") . 'Usuarios/permisos/' . $data[$i]["id"] . '" class="btn btn-dark ms-2" ><i class="fas fa-key"></i></a>
                 <button type="button" data-bs-toggle="modal" data-bs-target="#nuevo_usuario" onclick="btnEditarUser(' . $data[$i]["id"] . ');" class="btn btn-primary mx-2" ><i class="fas fa-edit"></i></button>
                 <button type="button" onclick="btnEliminarUser(' . $data[$i]["id"] . ');" class="btn btn-danger" ><i class="fas fa-trash"></i></button>
                 <button type="button"  class="btn btn-secondary disabled" ><i class="fa fa-rotate"></i></button>
                 </div>';
+                }
             } else {
                 $data[$i]['estado'] = '<h5><span class="badge bg-danger">Inactivo</span></h5>';
                 $data[$i]['acciones'] =  '<div>
+                <button type="button"   class="btn btn-secondary mx-2 " disabled><i class="fas fa-key"></i></button>
                 <button type="button"   class="btn btn-secondary mx-2 " disabled><i class="fas fa-edit"></i></button>
                 <button type="button"  class="btn btn-secondary disabled" ><i class="fas fa-trash"></i></button>
                 <button type="button" onclick="btnReingresarUser(' . $data[$i]["id"] . ');" class="btn btn-success" ><i class="fa fa-rotate"></i></button>
@@ -57,10 +73,11 @@ class Usuarios extends Controller
                 $_SESSION["id_usuario"] = $data["id"];
                 $_SESSION["usuario"] = $data["usuario"];
                 $_SESSION["nombre"] = $data["nombre"];
+                $_SESSION["rol"] = $data["id_rol"];
                 $_SESSION["activo"] = true;
-                $msg = "ok";
+                $msg = array("msg" => "ok", "id_rol" => $_SESSION["rol"]);
             } else {
-                $msg = "Usuario y/o Contraseña incorrectos";
+                $msg =  array("msg" => "Usuario y/o Contraseña incorrectos");
             }
         }
 
@@ -194,31 +211,89 @@ class Usuarios extends Controller
             } else {
                 $id = $_SESSION["id_usuario"];
                 $data = $this->model->editarUser($id);
-                if(!empty($data)){
-                    
-                if ( md5($actual) == $data["clave"]) {
-                    $verificar = $this->model->modificarPass(md5($nueva), $id);
-                    if ($verificar == 1) {
-                        $msg = "ok";
+                if (!empty($data)) {
+
+                    if (md5($actual) == $data["clave"]) {
+                        $verificar = $this->model->modificarPass(md5($nueva), $id);
+                        if ($verificar == 1) {
+                            $msg = "ok";
+                        } else {
+                            $msg = "Error al modificar la contraseña";
+                        }
                     } else {
-                        $msg = "Error al modificar la contraseña";
+                        $msg = "La contraseña actual incorrecta";
                     }
                 } else {
-                    $msg = "La contraseña actual incorrecta";
-                }
-                }else{
                     $msg = "No existen datos del usuario";
                 }
             }
         }
 
-        echo json_encode($msg,JSON_UNESCAPED_UNICODE);
+        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
     }
+
+
 
     public function salir()
     {
         session_destroy();
         header("location: " . constant("URL"));
+    }
+
+    public function permisos($id)
+    {
+
+        if(!is_numeric($id) || $id == ""){
+            header("location: " . constant("URL")."Usuarios");
+        }else{
+
+         $verificar =  $this->model->getUsuarioIdDetallePermiso($id);
+         if(!empty($verificar)){
+                
+        $data["datos"] =  $this->model->getPermisos();
+        $permisos = $this->model->getDetallePermisos($id);
+        $data["asignados"] = array();
+        foreach($permisos as $permiso){
+            $data["asignados"][$permiso["id_permiso"]] = true;
+        }
+        $data["id_usuario"] = $id;
+        $this->views->getView($this, "permisos", $data);   
+         }else{
+            header("location: " . constant("URL")."Usuarios");
+         }
+
+        }
+
+    }
+
+    public function registrarPermiso()
+    {
+        $msg = "";
+        $id_user = $_POST["id"];
+        $eliminar = $this->model->eliminarPermisos($id_user);
+        if ($eliminar == "ok") {
+
+            if(!empty($_POST["permisos"])){
+                    
+            foreach ($_POST["permisos"] as $id_permiso) {
+                $msg = $this->model->registrarPermisos($id_user, $id_permiso);
+             }
+ 
+             if($msg == "ok"){
+                 $msg = array("msg"=> "Permisos asignados","icono"=>"success");
+             }else{
+                 $msg = array("msg"=> "Error al asignar los permisos","icono"=>"error");
+             }
+            }else{
+                $msg = array("msg"=> "Eliminación de todos los permisos asignados","icono"=>"success");
+            }
+
+
+        }else{
+            $msg = array("msg"=> "Error al eliminar los permisos anteriores","icono"=>"error");
+        }
+        echo json_encode($msg,JSON_UNESCAPED_UNICODE);
+        die();
     }
 }

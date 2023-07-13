@@ -130,6 +130,8 @@ include "Views/Templates/header.php";
         <th>ID</th>
         <th>Descripción</th>
         <th>Cantidad</th>
+        <th>Aplicar</th>
+        <th>Descuento</th>
         <th>Precio</th>
         <th>Sub Total</th>
         <th width="75px"></th>

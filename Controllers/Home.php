@@ -6,7 +6,13 @@ class Home extends Controller{
     {
       session_start();
       if(!empty($_SESSION["activo"])){
-        header("location: ".constant("URL")."Usuarios");
+
+        if($_SESSION["rol"] == 1){
+          header("location: ".constant("URL")."Administracion/Home");
+        }else{
+          header("location: ".constant("URL")."Clientes");
+        }
+        
     }
       parent::__construct();
     }

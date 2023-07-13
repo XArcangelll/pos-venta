@@ -8,6 +8,10 @@ class Administracion extends Controller{
         if(empty($_SESSION["activo"])){
             header("location: ".constant("URL"));
 
+        }else{
+            if($_SESSION["rol"] != 1){
+                header("location: ".constant("URL")."Clientes");
+              }
         }
         parent::__construct();
     }

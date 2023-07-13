@@ -7,10 +7,10 @@
         <meta name="description" content="" />
         <meta name="author" content="" />
         <title>Panel de Administración</title>
-        
         <link href="<?php echo constant("URL")?>Assets/css/style.min.css" rel="stylesheet" />
         <link href="<?php echo constant("URL")?>Assets/css/styles.css" rel="stylesheet" />
         <link href="<?php echo constant("URL")?>Assets/css/dataTables.css" rel="stylesheet" /> 
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
        <!--  <link href="<?php echo constant("URL")?>Assets/DataTables/datatables.min.css" rel="stylesheet" />-->
         <link href="<?php echo constant("URL")?>Assets/css/productos.css" rel="stylesheet" />
         
@@ -21,7 +21,7 @@
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
             <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3" href="<?php echo constant("URL")?>Administracion/Home">Pos Venta</a>
+            <a class="navbar-brand ps-3" href="#">Pos Venta</a>
             <!-- Sidebar Toggle-->
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
             
@@ -41,22 +41,50 @@
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
+                       
+                            <?php if($_SESSION["rol"] == 1){
+
+                           ?>
+
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
                                 <div class="sb-nav-link-icon"><i class="fas fa-cogs text-primary"></i></div>
                                Administración
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down text-primary"></i></div>
                             </a>
+                          
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="<?php echo constant("URL") ?>Administracion/Home"><i class="fas fa-home me-2 text-primary"></i>Home</a>
                                     <a class="nav-link" href="<?php echo constant("URL") ?>Usuarios"><i class="fas fa-user me-2 text-primary"></i>Usuarios</a>
-                                    <a class="nav-link" href="<?php echo constant("URL") ?>Cajas"><i class="fas fa-box me-2 text-primary"></i>Cajas</a>
+                                   
                                     <a class="nav-link" href="<?php echo constant("URL") ?>Administracion"><i class="fas fa-tools me-2 text-primary"></i>Configuración</a>
+                                </nav>
+                            </div>
+
+                            <?php } ?>
+
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#cajas" aria-expanded="false" aria-controls="collapseLayouts">
+                                <div class="sb-nav-link-icon"><i class="fas fa-box text-primary"></i></div>
+                               Cajas
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down text-primary"></i></div>
+                            </a>
+                            <div class="collapse" id="cajas" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+                                <nav class="sb-sidenav-menu-nested nav">
+                                 
+
+                                <?php if($_SESSION["rol"] == 1){?>
+
+                                    <a class="nav-link" href="<?php echo constant("URL") ?>Cajas"><i class="fas fa-box me-2 text-primary"></i>Cajas</a>
+                                    
+                                    <?php } ?>
+                                    <a class="nav-link" href="<?php echo constant("URL") ?>Cajas/arqueo"><i class="fas fa-tools me-2 text-primary"></i>Arqueo Caja</a>
                                 </nav>
                             </div>
                             <a class="nav-link" href="<?php echo constant("URL")?>Clientes">
                                 <div class="sb-nav-link-icon"><i class="fas fa-users text-primary"></i></div>
                                Clientes
                             </a>
+                            <?php if($_SESSION["rol"] == 1){?>
                             <a class="nav-link" href="<?php echo constant("URL")?>Categorias">
                                 <div class="sb-nav-link-icon"><i class="fa fa-clipboard text-primary"></i></div>
                                Categorías
@@ -65,6 +93,7 @@
                                 <div class="sb-nav-link-icon"><i class="fa fa-ruler text-primary"></i></div>
                                Medidas
                             </a>
+                            <?php } ?>
                             <a class="nav-link" href="<?php echo constant("URL")?>Productos">
                                 <div class="sb-nav-link-icon"><i class="fa fa-bag-shopping text-primary"></i></div>
                                Productos

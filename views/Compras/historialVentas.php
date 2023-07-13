@@ -15,6 +15,38 @@
                     </div>
                 </div> 
     </div>
+
+    <div class="row">
+                <div class="col-md-12">
+                            <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3">
+                                                <span class="input-group-text bg-info text-white"><i class="fas fa-calendar-alt"></i></span>
+                                            <input type="text" class="form-control" id="start_date" placeholder="Inicio de Fecha">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3">
+                                                <span class="input-group-text bg-info text-white"><i class="fas fa-calendar-alt"></i></span>
+                                            <input type="text" class="form-control" id="end_date" placeholder="Fin de Fecha">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 ">
+                                    <div class="input-group mb-3">
+                                        <button id="filter" class="btn btn-info m-auto" onclick="filtrarFecha(event)">Filtrar</button>  
+                                    </div>
+                                    </div>
+                                    <div class="col-md-3 ">
+                                    <div class="input-group mb-3">
+                                        <button id="filter" class="btn btn-warning ms-auto w-75" onclick=" mostrarTodo(event);">Mostrar Todo</button>
+                                        
+                                    </div>
+                                        
+                                    </div>
+                            </div>
+                </div>
+    </div>
+
     <div class="table-responsive">
     
 <table class="table table-borderless text-center mt-2 pt-2" id="tblHistorialVenta">

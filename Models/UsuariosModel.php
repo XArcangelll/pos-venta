@@ -24,6 +24,7 @@ class UsuariosModel extends Query
                 return $data;
         }
 
+       
         public function getCajaId(int $id_caja)
         {
                 $sql = "SELECT * FROM caja where id = $id_caja and estado = 1";
@@ -119,6 +120,53 @@ class UsuariosModel extends Query
                 $sql = "UPDATE usuarios set clave = ? WHERE id = ? ";
                 $datos = array($clave,$id);
                 $data = $this->save($sql,$datos);
+                return $data;
+        }
+
+        public function getPermisos()
+        {
+                $sql = "SELECT * FROM permisos";
+                $data = $this->selectAll($sql);
+                return $data;
+        }
+
+        public function registrarPermisos(int $id_user, int $id_permiso){
+                $sql = "INSERT INTO detalle_permisos(id_usuario,id_permiso) VALUES(?,?)";
+                $datos = array($id_user,$id_permiso);
+                $data = $this->save($sql,$datos);
+                if($data == 1){
+                        $res = "ok";
+               }else{
+                        $res = "error";
+               }
+                return $res;
+        }
+
+        public function eliminarPermisos(int $id_user){
+                $sql = "DELETE FROM detalle_permisos WHERE id_usuario = ?";
+                $datos = array($id_user);
+                $data = $this->save($sql,$datos);
+               if($data == 1){
+                        $res = "ok";
+               }else{
+                        $res = "error";
+               }
+                return $res;
+        }
+
+
+        public function getDetallePermisos($id)
+        {
+                $sql = "SELECT * FROM detalle_permisos WHERE id_usuario = $id";
+                $data = $this->selectAll($sql);
+                return $data;
+        }
+
+        public function getUsuarioIdDetallePermiso(int $id)
+        {
+                $sql = "SELECT * FROM usuarios where id = $id and estado = 1 and id_rol != 1";
+                $data = $this->select($sql);
+
                 return $data;
         }
 

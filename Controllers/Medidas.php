@@ -6,15 +6,21 @@ class Medidas extends Controller
     {
         session_start();
 
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }else{
+            if($_SESSION["rol"] != 1){
+                header("location: ".constant("URL")."Clientes");
+              }
+        }
+
         parent::__construct();
     }
 
 
     public function index()
     {
-        if (empty($_SESSION["activo"])) {
-            header("location: " . constant("URL"));
-        }
+        
         $this->views->getView($this, "index");
     }
 

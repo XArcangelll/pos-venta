@@ -50,3 +50,38 @@
 	top: -10px;
 	z-index: 10;
 }
+
+
+input[type="checkbox"]{
+	position: relative;
+	width: 60px;
+	height: 30px;
+	-webkit-appearance: none;
+	background: rgb(168, 168, 168);
+	outline: none;
+	border-radius: 15px;
+	box-shadow: inset 0 0 5px rgba(0, 0, 0, .5) ;
+}
+
+input:checked[type="checkbox"]{
+	background: rgb(0, 123, 255);
+}
+
+input[type="checkbox"]:before{
+		content: "";
+		position: absolute;
+		width: 30px;
+		height: 30px;
+		border-radius: 20px;
+		top: 0;
+		left: 0;
+		background: white;
+		transition: 0.5s;
+}
+
+
+
+input:checked[type="checkbox"]:before{
+	left: 30px;
+}
+

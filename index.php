@@ -48,11 +48,11 @@ error_log( "Inicio de la Aplicación" );
         if(method_exists($controller,$metodo)){
             $controller->$metodo($parametro);
         }else{
-            echo "no existe el método";
+           header("location: ".constant("URL")."Errors");
         }
 
    }else{
-    echo "no existe el controlador";
+    header("location: ".constant("URL")."Errors");
    }
 
 

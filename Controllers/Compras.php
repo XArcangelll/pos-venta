@@ -329,42 +329,55 @@ class Compras extends Controller
             }
         }
 
+
+
         $id_usuario =  $_SESSION["id_usuario"];
-        $total = $this->model->calcularVenta($id_usuario);
-        $detalle = $this->model->getDetalleTemporalVenta($id_usuario);
-        foreach($detalle as $row){
-            $id_producto = $row["id_producto"];
-            $cantidad = $row["cantidad"];
-            $dataproducto = $this->model->getProductoId($id_producto);
-            if($cantidad > $dataproducto["cantidad"] ){
-                $msg = array("msg"=>"productoerror","cantidad_temp"=>$cantidad,"data"=>$dataproducto);
-                echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-                die();
-            }
-        }
-        $data = $this->model->registraVenta($id_usuario,$id_cliente, $total["total"]);
-        if ($data == "ok") {
-        
-            $id_venta =  $this->model->id_venta($id_usuario);
-            foreach ($detalle as $row) {
+
+        $verificarCaja =  $this->model->verificarCaja($id_usuario);
+        if(empty($verificarCaja)){
+                $msg = array("msg"=>"cerrada");
+        }else{
+            $total = $this->model->calcularVenta($id_usuario);
+            $detalle = $this->model->getDetalleTemporalVenta($id_usuario);
+            foreach($detalle as $row){
                 $id_producto = $row["id_producto"];
                 $cantidad = $row["cantidad"];
-                $precio = $row["precio"];
-                $sub_total = $row["sub_total"];
-                $this->model->registrarDetalleVenta($id_venta["id"], $id_producto, $cantidad, $precio, $sub_total);
-                $stock_actual = $this->model->getProductosStock($id_producto);
-                $stock = $stock_actual["cantidad"] - $cantidad;
-                $this->model->actualizarStock($stock,$id_producto);
+                $dataproducto = $this->model->getProductoId($id_producto);
+                if($cantidad > $dataproducto["cantidad"] ){
+                    $msg = array("msg"=>"productoerror","cantidad_temp"=>$cantidad,"data"=>$dataproducto);
+                    echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+                    die();
+                }
+            }
+            $data = $this->model->registraVenta($id_usuario,$id_cliente, $total["total"]);
+            if ($data == "ok") {
+            
+                $id_venta =  $this->model->id_venta($id_usuario);
+                foreach ($detalle as $row) {
+                    $id_producto = $row["id_producto"];
+                    $cantidad = $row["cantidad"];
+                    $precio = $row["precio"];
+                    $descuento = $row["descuento"];
+                    $sub_total = $row["sub_total"] - $row["descuento"];
+                    $this->model->registrarDetalleVenta($id_venta["id"], $id_producto, $cantidad, $precio,$descuento, $sub_total);
+                    $stock_actual = $this->model->getProductosStock($id_producto);
+                    $stock = $stock_actual["cantidad"] - $cantidad;
+                    $this->model->actualizarStock($stock,$id_producto);
+                }
+    
+                $vaciar = $this->model->vaciarDetalleTempVenta($id_usuario);
+                if($vaciar == "ok"){
+                    $msg = array("msg"=>"ok","id_venta" => $id_venta["id"]);
+                }
+    
+            } else {
+                $msg = array("msg"=>"Error al realizar la Venta");
             }
 
-            $vaciar = $this->model->vaciarDetalleTempVenta($id_usuario);
-            if($vaciar == "ok"){
-                $msg = array("msg"=>"ok","id_venta" => $id_venta["id"]);
-            }
-
-        } else {
-            $msg = array("msg"=>"Error al realizar la Venta");
         }
+
+
+      
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
     }
@@ -487,25 +500,37 @@ class Compras extends Controller
         //encabezado de productos
         $pdf->SetFillColor(0,0,0);
         $pdf->SetTextColor(255,255,255);
-        $pdf->Cell(75,5, mb_convert_encoding('Descripción', 'ISO-8859-1', 'UTF-8'),0,0,'L',true);
+        $pdf->Cell(65,5, mb_convert_encoding('Descripción', 'ISO-8859-1', 'UTF-8'),0,0,'L',true);
         $pdf->Cell(12,5,"Cant",0,0,'L',true);
         $pdf->Cell(12,5,"Precio",0,0,'L',true);
+        $pdf->Cell(12,5,"Des",0,0,'L',true);
         $pdf->Cell(15,5,"Sub Total",0,1,'L',true);
         $pdf->SetTextColor(0,0,0);
+        $subtotal = 0.0;
         $total = 0.0;
+        $descuento = 0.0;
         foreach($productos as $row){
             $dato = $this->model->consultarPrecioProducto($row["id_producto"]);
             if($row["precio"] > $dato["precio_venta"]){
-                $pdf->Cell(75,5, mb_convert_encoding($row["descripcion"]. " (ADICIONAL)", 'ISO-8859-1', 'UTF-8'),0,0,'L');
+                $pdf->Cell(65,5, mb_convert_encoding($row["descripcion"]. " (ADICIONAL)", 'ISO-8859-1', 'UTF-8'),0,0,'L');
             }else{
-                $pdf->Cell(75,5, mb_convert_encoding($row["descripcion"], 'ISO-8859-1', 'UTF-8'),0,0,'L');
+                $pdf->Cell(65,5, mb_convert_encoding($row["descripcion"], 'ISO-8859-1', 'UTF-8'),0,0,'L');
             }
          
             $pdf->Cell(12,5,$row["cantidad"],0,0,'L');
              $pdf->Cell(12,5,$row["precio"],0,0,'L');
+             $pdf->Cell(12,5,$row["descuento"],0,0,'L');
             $pdf->Cell(15,5,$row["sub_total"],0,1,'L');
+            $descuento += $row["descuento"];
             $total = $row["total"];
         }
+        $subtotal = $total + $descuento;
+        $pdf->Ln();
+        $pdf->Cell(115,5,'Sub Total a pagar',0,1,'R');
+        $pdf->Cell(115,5,'S/. '.$subtotal,0,1,'R');
+        $pdf->Ln();
+        $pdf->Cell(115,5,'Descuento total',0,1,'R');
+        $pdf->Cell(115,5,'- S/. '.$descuento,0,1,'R');
         $pdf->Ln();
         $pdf->Cell(115,5,'Total a Pagar',0,1,'R');
         $pdf->Cell(115,5,'S/. '.$total,0,1,'R');
@@ -549,8 +574,19 @@ class Compras extends Controller
     }
 
     
-    public function listarHistorialVentas(){
-        $data = $this->model->getHistorialVentas();
+    public function listarHistorialVentas($datos){
+        if($datos != ""){
+            
+        $array = explode(",",$datos);
+        $fechai = $array[0];
+        $fechaf = $array[1];
+        }
+        if(!empty($fechai) && !empty($fechaf)){
+        $data = $this->model->getHistorialVentasFecha($fechai,$fechaf);
+        }else{
+            $data = $this->model->getHistorialVentas();
+        }
+        
         for ($i = 0; $i < count($data); $i++) {
             if ($data[$i]['estado'] == 1) {
                 $data[$i]['estado'] = ' <h5><span class="badge bg-success">Pagado</span></h5>';
@@ -652,6 +688,36 @@ class Compras extends Controller
                 }
             } else {
                 $msg = "El ID de la venta no existe";
+            }
+        }
+        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function calcularDescuento($datos){
+        $array = explode(",",$datos);
+        $id = $array[0];
+        $descuento = $array["1"];
+        $id_usuario =  $_SESSION["id_usuario"];
+        if(empty($id) ){
+            $msg = "No hay datos de Id y/o descuento";
+        }else{
+            $verificar = $this->model->verificarIdDetalleTemp($id,$id_usuario);
+            if($verificar){
+
+                if($descuento >= $verificar["sub_total"]){
+                      $msg = "El descuento no puede ser mayor al sub_total";
+                }else{      
+                    $data = $this->model->actualizarDescuento($descuento,$id);
+                    if ($data == "ok") {
+                        $msg = "ok";
+                    } else {
+                        $msg = "Error al actualizar el Descuento";
+                    }
+                }
+               
+            }else{
+                $msg = "El ID del detalle temporal venta no existe";
             }
         }
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);

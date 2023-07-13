@@ -135,7 +135,7 @@ class ComprasModel extends Query
 
     public function calcularVenta(int $id)
     {
-        $sql = "SELECT SUM(sub_total) as total FROM detalle_temp_venta WHERE id_usuario = $id";
+        $sql = "SELECT (SUM(sub_total) - SUM(descuento)) as total FROM detalle_temp_venta WHERE id_usuario = $id";
         $data = $this->select($sql);
         return $data;
     }
@@ -229,9 +229,9 @@ class ComprasModel extends Query
         return $res;
     }
 
-    public function registrarDetalleVenta(int $id_venta,int $id_producto, int $cantidad,float $precio,float $sub_total){
-        $sql = "INSERT INTO detalle_ventas(id_venta,id_producto,cantidad,precio,sub_total) VALUES(?,?,?,?,?)";
-        $datos = array($id_venta,$id_producto,$cantidad,$precio,$sub_total);
+    public function registrarDetalleVenta(int $id_venta,int $id_producto, int $cantidad,float $precio,float $descuento,float $sub_total){
+        $sql = "INSERT INTO detalle_ventas(id_venta,id_producto,cantidad,precio,descuento,sub_total) VALUES(?,?,?,?,?,?)";
+        $datos = array($id_venta,$id_producto,$cantidad,$precio,$descuento,$sub_total);
         $data = $this->save($sql, $datos);
         if ($data == 1) {
             $res = "ok";
@@ -284,7 +284,7 @@ class ComprasModel extends Query
     }
 
     public function getProVenta(int $id_venta){
-        $sql = "SELECT v.*,dt.id_venta,dt.id_producto,dt.cantidad,dt.precio,dt.sub_total, p.descripcion FROM  ventas v INNER JOIN detalle_ventas dt on dt.id_venta = v.id INNER JOIN productos p on p.id = dt.id_producto WHERE v.id = $id_venta";
+        $sql = "SELECT v.*,dt.id_venta,dt.id_producto,dt.cantidad,dt.precio,dt.descuento,dt.sub_total, p.descripcion FROM  ventas v INNER JOIN detalle_ventas dt on dt.id_venta = v.id INNER JOIN productos p on p.id = dt.id_producto WHERE v.id = $id_venta";
         $data = $this->selectAll($sql);
         return $data;
 }
@@ -300,6 +300,13 @@ class ComprasModel extends Query
         $data = $this->selectAll($sql);
         return $data;
     }
+
+    public function getHistorialVentasFecha(string $fechai, string $fechaf){
+        $sql = "SELECT v.id,v.fecha,c.nombre as cliente, u.nombre as usuario,v.total,v.estado FROM ventas v inner join usuarios u on u.id = v.id_usuario inner join clientes c on c.id = v.id_cliente WHERE DATE(v.fecha) between '$fechai' and '$fechaf'";
+        $data = $this->selectAll($sql);
+        return $data;
+    }
+
 
     public function getDetalleVenta(int $id_venta){
         $sql = "SELECT * FROM detalle_ventas where id_venta = $id_venta";
@@ -337,4 +344,31 @@ class ComprasModel extends Query
         $data = $this->save($sql, $datos);
         return $data;
     }
+
+    public function verificarIdDetalleTemp(int $id,int $id_usuario){
+        $sql = "SELECT * FROM detalle_temp_venta where id = $id and id_usuario = $id_usuario";
+        $data = $this->select($sql);
+        return $data;
+    }
+
+    public function actualizarDescuento(string $descuento, int $id){
+        $sql = "UPDATE detalle_temp_venta SET descuento = ? WHERE id = ?";
+        $datos = array($descuento,$id);
+        $data = $this->save($sql,$datos);
+        if($data == 1){
+            $res = "ok";
+        }else{
+            $res = "error";
+        }
+
+        return $res;
+    }
+
+    public function verificarCaja(int $id){
+
+        $sql = "SELECT * FROM cierre_caja WHERE id_usuario = $id and estado = 1";
+        $data = $this->select($sql);
+        return $data;
+    }
+
 }
