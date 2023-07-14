@@ -2,7 +2,7 @@
 
 class UsuariosModel extends Query
 {
-        private $usuario, $nombre, $clave, $id_caja, $id,$estado;
+        private $usuario, $nombre, $clave,$id_rol, $id_caja, $id,$estado;
 
         public function __construct()
         {
@@ -48,17 +48,19 @@ class UsuariosModel extends Query
                 return $data;
         }
 
-        public function registrarUsuario(string $usuario, string $nombre, string $clave, int $id_caja)
+        public function registrarUsuario(string $usuario, string $nombre, string $clave,int $id_rol, int $id_caja)
         {
                 $this->usuario = $usuario;
                 $this->nombre = $nombre;
                 $this->clave = $clave;
+                $this->id_rol = $id_rol;
                 $this->id_caja = $id_caja;
+                
                 $verificar = "SELECT * FROM usuarios where usuario = '$this->usuario'";
                 $existe = $this->select($verificar);
                 if (empty($existe)) {
-                        $sql = "INSERT INTO usuarios(usuario,nombre,clave,id_caja) VALUES(?,?,?,?)";
-                        $datos = array($this->usuario, $this->nombre, $this->clave, $this->id_caja);
+                        $sql = "INSERT INTO usuarios(usuario,nombre,clave,id_rol,id_caja) VALUES(?,?,?,?,?)";
+                        $datos = array($this->usuario, $this->nombre, $this->clave,$this->id_rol, $this->id_caja);
                         $data =  $this->save($sql, $datos);
                         if ($data == 1) {
                                 $res = "ok";

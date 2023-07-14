@@ -145,7 +145,7 @@ class Usuarios extends Controller
                         $msg = "Las contraseñas no coinciden we";
                     } else {
                         $encriptado = md5($clave);
-                        $data =  $this->model->registrarUsuario($usuario, $nombre, $encriptado, $caja);
+                        $data =  $this->model->registrarUsuario($usuario, $nombre, $encriptado,2, $caja);
                         if ($data == "ok") {
                             $msg = "ok";
                         } else if ($data == "existe") {
