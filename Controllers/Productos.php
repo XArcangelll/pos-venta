@@ -14,10 +14,17 @@ class Productos extends Controller
     {
         if (empty($_SESSION["activo"])) {
             header("location: " . constant("URL"));
-        }
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'productos');  
+            if(!empty($verificar) || $id_user == 1){
         $data['medidas'] =  $this->model->getMedidas();
         $data['categorias'] =  $this->model->getCategorias();
         $this->views->getView($this, "index", $data);
+        }else{
+            header("location: ".constant("URL")."Errors/permisos");
+        }
+    }
     }
 
     public function listar()

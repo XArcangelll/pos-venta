@@ -5,9 +5,8 @@ class Administracion extends Controller{
     public function __construct()
     {
         session_start();
-        if(empty($_SESSION["activo"])){
-            header("location: ".constant("URL"));
-
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
         }else{
             if($_SESSION["rol"] != 1){
                 header("location: ".constant("URL")."Clientes");
@@ -17,18 +16,53 @@ class Administracion extends Controller{
     }
 
     public function index(){
-        $data = $this->model->getEmpresa();
-        $this->views->getView($this,"index",$data);
+
+        if(empty($_SESSION["activo"])){
+            header("location: ".constant("URL"));
+        }else{
+
+            if(isset($_SESSION["id_usuario"])){
+                $id_user = $_SESSION["id_usuario"];
+                $verificar = $this->model->verificarPermiso($id_user,'configuracion');  
+                
+                if(!empty($verificar) || $id_user == 1){
+                    $data = $this->model->getEmpresa();
+                    $this->views->getView($this,"index",$data);
+                }else{
+                    
+                    header("location: ".constant("URL")."Errors/permisos");
+                }
+            }else{
+                header("location: " . constant("URL"));
+            }
+
+
+     
+    }
+
     }
 
     
     public function home(){
-        $data["usuarios"] = $this->model->getDatos("usuarios");
+
+
+
+        $id_user = $_SESSION["id_usuario"];
+        $verificar = $this->model->verificarPermiso($id_user,'configuracion');  
+        
+        if(!empty($verificar) || $id_user == 1){
+             $data["usuarios"] = $this->model->getDatos("usuarios");
         $data["clientes"] = $this->model->getDatos("clientes");
         $data["productos"] = $this->model->getDatos("productos");
         $data["ventas"] = $this->model->getVentas();
         $data["ganancias"] = $this->model->getGananciasHoy();
         $this->views->getView($this,"home",$data);
+        }else{
+            
+            header("location: ".constant("URL")."Errors/permisos");
+        }
+
+      
     }
 
     public function modificar(){
@@ -78,6 +112,8 @@ class Administracion extends Controller{
         echo json_encode($data,JSON_UNESCAPED_UNICODE);
         die();
     }
+
+
 
 
 }

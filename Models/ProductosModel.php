@@ -131,5 +131,12 @@ class ProductosModel extends Query
                 return $data;
         }
 
+        public function verificarPermiso(int $id_user, string $nombre){
+
+                $sql = "SELECT p.id, p.permiso, d.id as id_detalle, d.id_usuario, d.id_permiso FROM permisos p inner join detalle_permisos d ON p.id = d.id_permiso where d.id_usuario = $id_user AND p.permiso = '$nombre'";
+                $data = $this->selectAll($sql);
+                return $data;
+            }
+
        
 }

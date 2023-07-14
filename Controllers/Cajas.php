@@ -5,7 +5,9 @@ class Cajas extends Controller
     public function __construct()
     {
         session_start();
-
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }
         parent::__construct();
     }
 
@@ -24,14 +26,32 @@ class Cajas extends Controller
 
     public function arqueo()
     {
+
         if (empty($_SESSION["activo"])) {
             header("location: " . constant("URL"));
+        }else{
+        $id_user = $_SESSION["id_usuario"];
+        $verificar = $this->model->verificarPermiso($id_user,'arqueo_caja');  
+        if(!empty($verificar) || $id_user == 1){
+            $this->views->getView($this, "arqueo");
+        }else{
+            
+            header("location: ".constant("URL")."Errors/permisos");
         }
-        $this->views->getView($this, "arqueo");
+    }
+
+        
+   
     }
 
     public function listar()
     {
+
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }else{
+
+
         if($_SESSION["rol"] != 1){
             header("location: ".constant("URL")."Clientes");
           }else{
@@ -58,10 +78,14 @@ class Cajas extends Controller
         die();
     }
     }
+    }
 
 
     public function registrar()
     {
+
+      
+
 
         if($_SESSION["rol"] != 1){
             header("location: ".constant("URL")."Clientes");

@@ -5,6 +5,9 @@ class Clientes extends Controller
     public function __construct()
     {
         session_start();
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }
 
         parent::__construct();
     }
@@ -12,10 +15,13 @@ class Clientes extends Controller
 
     public function index()
     {
-        if (empty($_SESSION["activo"])) {
-            header("location: " . constant("URL"));
-        }
-        $this->views->getView($this, "index");
+        if(empty($_SESSION["activo"])){
+            header("location: ".constant("URL"));
+        }else{
+
+            $this->views->getView($this, "index");
+}
+   
     }
 
     public function listar()
@@ -47,56 +53,72 @@ class Clientes extends Controller
     public function registrar()
     {
 
-        $dni = $_POST["dni"];
-        $nombre = $_POST["nombre"];
-        $telefono = $_POST["telefono"];
-        $direccion = $_POST["direccion"];
-        $id = $_POST["id"];
-        if (empty($dni) || empty($nombre)  || empty($telefono) || empty($direccion)) {
-            $msg = "Todos los campos son obligatorios";
-        } else {
 
-                if ($id == "") {
-
-                    if(!$this->model->validarDNI($dni)){
-                        $msg = "El DNI debe ser entero y de 8 dígitos ";
-                    }else{
-                        $data =  $this->model->registrarCliente($dni, $nombre, $telefono, $direccion,$_SESSION["id_usuario"]);
-                        if ($data == "ok") {
-                            $msg = "ok";
-                        } else if ($data == "existe") {
-                            $msg = "El DNI ya existe";
-                        } else {
-                            $msg = "Error al registrar el cliente";
-                        }
-                    }
-                    
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'registrar_cliente');  
+            if(!empty($verificar) || $id_user == 1){
+                $dni = $_POST["dni"];
+                $nombre = $_POST["nombre"];
+                $telefono = $_POST["telefono"];
+                $direccion = $_POST["direccion"];
+                $id = $_POST["id"];
+                if (empty($dni) || empty($nombre)  || empty($telefono) || empty($direccion)) {
+                    $msg = "Todos los campos son obligatorios";
                 } else {
-
-                    if (!is_numeric($id)) {
-                        $msg = "El ID cliente no es entero";
-                    } else {
-                        $validarCliente = $this->model->getClienteId($id);
-                        if ($validarCliente) {
+        
+                        if ($id == "") {
+        
                             if(!$this->model->validarDNI($dni)){
                                 $msg = "El DNI debe ser entero y de 8 dígitos ";
                             }else{
-                            $data =  $this->model->modificarCliente($dni, $nombre, $telefono,$direccion, $id);
-                            if ($data == "modificado") {
-                                $msg = "modificado";
-                            } else if ($data == "existe") {
-                                $msg = "El cliente ya existe";
+                                $data =  $this->model->registrarCliente($dni, $nombre, $telefono, $direccion,$_SESSION["id_usuario"]);
+                                if ($data == "ok") {
+                                    $msg = "ok";
+                                } else if ($data == "existe") {
+                                    $msg = "El DNI ya existe";
+                                } else {
+                                    $msg = "Error al registrar el cliente";
+                                }
+                            }
+                            
+                        } else {
+        
+                            if (!is_numeric($id)) {
+                                $msg = "El ID cliente no es entero";
                             } else {
-                                $msg = "Error al modificar el cliente";
+                                $validarCliente = $this->model->getClienteId($id);
+                                if ($validarCliente) {
+                                    if(!$this->model->validarDNI($dni)){
+                                        $msg = "El DNI debe ser entero y de 8 dígitos ";
+                                    }else{
+                                    $data =  $this->model->modificarCliente($dni, $nombre, $telefono,$direccion, $id);
+                                    if ($data == "modificado") {
+                                        $msg = "modificado";
+                                    } else if ($data == "existe") {
+                                        $msg = "El cliente ya existe";
+                                    } else {
+                                        $msg = "Error al modificar el cliente";
+                                    }
+                                }
+                                } else {
+                                    $msg = "No modifique el ID cliente";
+                                }
                             }
                         }
-                        } else {
-                            $msg = "No modifique el ID cliente";
-                        }
-                    }
+                     
                 }
-             
+            }else{
+                
+                $msg = "Usted no tiene permisos para registrar Cliente";
+            }
         }
+
+
+
+       
 
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
@@ -111,27 +133,51 @@ class Clientes extends Controller
 
     public function eliminar($id)
     {
-        if (!is_numeric($id)) {
-            $msg = "El ID Cliente no es entero";
-        } else {
-            $validarCliente = $this->model->getClienteId($id);
-            if ($validarCliente) {
-                $data = $this->model->accionCliente(0, $id);
-                if ($data == 1) {
-                    $msg = "ok";
+
+
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'eliminar_cliente');  
+            if(!empty($verificar) || $id_user == 1){
+
+                if (!is_numeric($id)) {
+                    $msg = "El ID Cliente no es entero";
                 } else {
-                    $msg = "Error al eliminar el Cliente";
+                    $validarCliente = $this->model->getClienteId($id);
+                    if ($validarCliente) {
+                        $data = $this->model->accionCliente(0, $id);
+                        if ($data == 1) {
+                            $msg = "ok";
+                        } else {
+                            $msg = "Error al eliminar el Cliente";
+                        }
+                    } else {
+                        $msg = "El ID del cliente no existe";
+                    }
                 }
-            } else {
-                $msg = "El ID del cliente no existe";
-            }
+
+        }else{
+            $msg = "Usted no tiene permisos para eliminar clientes";
         }
+
+    }
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
     }
 
     public function reingresar($id)
     {
+
+        if (empty($_SESSION["activo"])) {
+            header("location: " . constant("URL"));
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'eliminar_cliente');  
+            if(!empty($verificar) || $id_user == 1){
+
+
         if (!is_numeric($id)) {
             $msg = "El ID Cliente no es entero";
         } else {
@@ -147,6 +193,13 @@ class Clientes extends Controller
                 $msg = "El ID del cliente no existe";
             }
         }
+
+    }else{
+        $msg = "Usted no tiene permisos para reingresar clientes";
+    }
+
+}
+
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
     }

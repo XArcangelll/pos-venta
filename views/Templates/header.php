@@ -21,7 +21,7 @@
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
             <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3" href="#">Pos Venta</a>
+            <a class="navbar-brand ps-3" href="<?php echo constant("URL") ?>Administracion/Home">Pos Venta</a>
             <!-- Sidebar Toggle-->
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
             
@@ -42,7 +42,10 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                        
-                            <?php if($_SESSION["rol"] == 1){
+                            <?php
+                            
+                            if(!empty($_SESSION["rol"])){
+                            if($_SESSION["rol"] == 1){
 
                            ?>
 
@@ -61,7 +64,7 @@
                                 </nav>
                             </div>
 
-                            <?php } ?>
+                            <?php } }?>
 
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#cajas" aria-expanded="false" aria-controls="collapseLayouts">
                                 <div class="sb-nav-link-icon"><i class="fas fa-box text-primary"></i></div>
@@ -72,11 +75,14 @@
                                 <nav class="sb-sidenav-menu-nested nav">
                                  
 
-                                <?php if($_SESSION["rol"] == 1){?>
+                                <?php 
+                                
+                                if(!empty($_SESSION["rol"])){
+                                if($_SESSION["rol"] == 1){?>
 
                                     <a class="nav-link" href="<?php echo constant("URL") ?>Cajas"><i class="fas fa-box me-2 text-primary"></i>Cajas</a>
                                     
-                                    <?php } ?>
+                                    <?php }} ?>
                                     <a class="nav-link" href="<?php echo constant("URL") ?>Cajas/arqueo"><i class="fas fa-tools me-2 text-primary"></i>Arqueo Caja</a>
                                 </nav>
                             </div>
@@ -84,7 +90,10 @@
                                 <div class="sb-nav-link-icon"><i class="fas fa-users text-primary"></i></div>
                                Clientes
                             </a>
-                            <?php if($_SESSION["rol"] == 1){?>
+                            <?php
+                            
+                            if(!empty($_SESSION["rol"])){
+                            if($_SESSION["rol"] == 1){?>
                             <a class="nav-link" href="<?php echo constant("URL")?>Categorias">
                                 <div class="sb-nav-link-icon"><i class="fa fa-clipboard text-primary"></i></div>
                                Categorías
@@ -93,7 +102,7 @@
                                 <div class="sb-nav-link-icon"><i class="fa fa-ruler text-primary"></i></div>
                                Medidas
                             </a>
-                            <?php } ?>
+                            <?php } }?>
                             <a class="nav-link" href="<?php echo constant("URL")?>Productos">
                                 <div class="sb-nav-link-icon"><i class="fa fa-bag-shopping text-primary"></i></div>
                                Productos

@@ -5,27 +5,60 @@ class Usuarios extends Controller
     public function __construct()
     {
         session_start();
-        if (empty($_SESSION["activo"])) {
-            header("location: " . constant("URL"));
-        } else {
-            if ($_SESSION["rol"] != 1) {
-                header("location: " . constant("URL") . "Clientes");
+        parent::__construct();
+    }
+
+
+    public function validacionRutas(){
+        
+
+        if(empty($_SESSION["activo"])){
+            header("location: ".constant("URL"));
+
+        }else{
+
+            if(!empty($_SESSION["rol"])){
+                
+       
+
+            if($_SESSION["rol"] != 1){
+                header("location: ".constant("URL")."Clientes");
+              }
             }
         }
-        parent::__construct();
+    
     }
 
 
     public function index()
     {
 
-        $data['cajas'] =  $this->model->getCajas();
-        $this->views->getView($this, "index", $data);
+        $this->validacionRutas();
+
+        if(isset($_SESSION["id_usuario"])){
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'usuarios');  
+            
+            if(!empty($verificar) || $id_user == 1){
+                $data['cajas'] =  $this->model->getCajas();
+                $this->views->getView($this, "index", $data);
+            }else{
+                
+                header("location: ".constant("URL")."Errors/permisos");
+            }
+        }else{
+            header("location: ".constant("URL"));
+        }
+
+      
+
+    
     }
 
     public function listar()
     {
 
+        $this->validacionRutas();
         $data = $this->model->getUsuarios();
         for ($i = 0; $i < count($data); $i++) {
             if ($data[$i]['estado'] == 1) {
@@ -88,6 +121,9 @@ class Usuarios extends Controller
     public function registrar()
     {
 
+
+        $this->validacionRutas();
+
         $usuario = $_POST["usuario"];
         $nombre = $_POST["nombre"];
         $clave = $_POST["clave"];
@@ -149,6 +185,9 @@ class Usuarios extends Controller
 
     public function editar(int $id)
     {
+
+        $this->validacionRutas();
+
         $data = $this->model->editarUser($id);
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
@@ -156,6 +195,9 @@ class Usuarios extends Controller
 
     public function eliminar($id)
     {
+
+        $this->validacionRutas();
+
         if (!is_numeric($id)) {
             $msg = "El ID Usuario no es entero";
         } else {
@@ -177,6 +219,10 @@ class Usuarios extends Controller
 
     public function reingresar($id)
     {
+
+
+        $this->validacionRutas();
+
         if (!is_numeric($id)) {
             $msg = "El ID Usuario no es entero";
         } else {
@@ -198,7 +244,10 @@ class Usuarios extends Controller
 
     function cambiarPass()
     {
+        if(empty($_SESSION["activo"])){
+            header("location: ".constant("URL"));
 
+        }
         $actual = $_POST["clave_actual"];
         $nueva = $_POST["clave_nueva"];
         $confirmar = $_POST["confirmar_clave"];
@@ -243,6 +292,7 @@ class Usuarios extends Controller
 
     public function permisos($id)
     {
+        $this->validacionRutas();
 
         if(!is_numeric($id) || $id == ""){
             header("location: " . constant("URL")."Usuarios");
@@ -269,6 +319,9 @@ class Usuarios extends Controller
 
     public function registrarPermiso()
     {
+
+        $this->validacionRutas();
+
         $msg = "";
         $id_user = $_POST["id"];
         $eliminar = $this->model->eliminarPermisos($id_user);

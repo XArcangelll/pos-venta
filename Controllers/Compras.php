@@ -14,8 +14,16 @@ class Compras extends Controller
         
         if (empty($_SESSION["activo"])) {
             header("location: " . constant("URL"));
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'nueva_compra');  
+            if(!empty($verificar) || $id_user == 1){
+                $this->views->getView($this, "index");
+            }else{
+                
+                header("location: ".constant("URL")."Errors/permisos");
+            }
         }
-        $this->views->getView($this, "index");
     }
 
     public function ventas()
@@ -25,8 +33,16 @@ class Compras extends Controller
 
         if (empty($_SESSION["activo"])) {
             header("location: " . constant("URL"));
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'nueva_venta');  
+            if(!empty($verificar) || $id_user == 1){
+                $this->views->getView($this, "ventas");
+            }else{
+                
+                header("location: ".constant("URL")."Errors/permisos");
+            }
         }
-        $this->views->getView($this, "ventas");
     }
 
     public function validacionStock(int $id){
@@ -543,16 +559,32 @@ class Compras extends Controller
         
         if (empty($_SESSION["activo"])) {
             header("location: " . constant("URL"));
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'historial_compras');  
+            if(!empty($verificar) || $id_user == 1){
+                $this->views->getView($this, "historial");
+            }else{
+                
+                header("location: ".constant("URL")."Errors/permisos");
+            }
         }
-        $this->views->getView($this, "historial");
     }
 
     public function historialVentas(){
         
         if (empty($_SESSION["activo"])) {
             header("location: " . constant("URL"));
+        }else{
+            $id_user = $_SESSION["id_usuario"];
+            $verificar = $this->model->verificarPermiso($id_user,'historial_ventas');  
+            if(!empty($verificar) || $id_user == 1){
+                $this->views->getView($this, "historialVentas");
+            }else{
+                
+                header("location: ".constant("URL")."Errors/permisos");
+            }
         }
-        $this->views->getView($this, "historialVentas");
     }
 
     public function listarHistorial(){
