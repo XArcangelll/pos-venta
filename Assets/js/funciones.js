@@ -2551,7 +2551,7 @@ function generarVenta(e) {
               Swal.fire({
                 icon: "warning",
                 timer: 2500,
-                title: "La caja está cerrada",
+                title: "La caja está cerrada o está en uso con otro usuario",
                 showConfirmButton: false,
               });
           }else {
