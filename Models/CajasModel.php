@@ -27,6 +27,12 @@ class CajasModel extends Query
         return $data;
     }
 
+    public function estadoCaja(int $id_caja){
+        $sql = "SELECT cc.* FROM sistema.cierre_caja cc inner join usuarios u on u.id = cc.id_usuario where cc.estado = 1 and u.id_caja = $id_caja";
+        $data = $this->select($sql);
+        return $data;
+    }
+
     
     public function getArqueo()
     {
@@ -91,7 +97,10 @@ class CajasModel extends Query
 
     public function registrarArqueo(int $id_usuario, string $monto_inicial,string $fecha_apertura)
     {
-        $verificar = "SELECT * FROM cierre_caja WHERE id_usuario = $id_usuario and estado = 1";
+        $caja = "SELECT id_caja from usuarios where id = $id_usuario";
+        $datac = $this->select($caja);
+        $datacaja = $datac["id_caja"];
+        $verificar = "SELECT cc.* FROM cierre_caja cc INNER JOIN usuarios u on u.id = cc.id_usuario  WHERE u.id_caja = $datacaja and cc.estado = 1";
         $existe = $this->select($verificar); 
         if(empty($existe)){
         $sql = "INSERT INTO cierre_caja(id_usuario,monto_inicial,fecha_apertura) VALUES(?,?,?)";
@@ -159,6 +168,12 @@ class CajasModel extends Query
         $sql = "SELECT p.id, p.permiso, d.id as id_detalle, d.id_usuario, d.id_permiso FROM permisos p inner join detalle_permisos d ON p.id = d.id_permiso where d.id_usuario = $id_user AND p.permiso = '$nombre'";
         $data = $this->selectAll($sql);
         return $data;
+    }
+
+    public function estadoCierreCaja(int $id_user){
+       $sql =  "select * from cierre_caja where id_usuario = $id_user and estado = 1";
+       $data = $this->select($sql);
+       return $data;
     }
 
 }

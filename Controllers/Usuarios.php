@@ -107,6 +107,7 @@ class Usuarios extends Controller
                 $_SESSION["usuario"] = $data["usuario"];
                 $_SESSION["nombre"] = $data["nombre"];
                 $_SESSION["rol"] = $data["id_rol"];
+                $_SESSION["id_caja"] = $data["id_caja"];
                 $_SESSION["activo"] = true;
                 $msg = array("msg" => "ok", "id_rol" => $_SESSION["rol"]);
             } else {

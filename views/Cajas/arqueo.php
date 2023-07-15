@@ -11,9 +11,15 @@ include "Views/Templates/header.php";
     <li class="breadcrumb-item active">Arqueo de Caja</li>
 </ol>
 
+<div id="botonesAbrirCerrarCaja">
 
-<button class="btn btn-primary mb-2 " data-bs-toggle="modal" data-bs-target="#abrir_caja" onclick="arqueoCaja(event);" type="button">Abrir Caja</button>
+<?php if(empty($data["data"])){ ?>
+    <button class="btn btn-primary mb-2 " data-bs-toggle="modal" data-bs-target="#abrir_caja" onclick="arqueoCaja(event);" type="button">Abrir Caja</button>
+<?php }else{ if(!empty($data["estado"])){ ?>
+    
 <button class="btn btn-danger mb-2 "  onclick="cerrarCaja(event);" type="button">Cerrar Caja</button>
+    <?php } }?>
+    </div>
 <table class="table table-borderless text-center pt-2" id="tblArqueo" width="100%">
     <thead class="table-dark">
         <tr>
@@ -64,8 +70,11 @@ include "Views/Templates/header.php";
                         <input id="monto_total" class="form-control" type="text" disabled>
                     </div>
                     </div>
-                    <button class="btn btn-primary mt-3" id="btnAccion" type="submit"></button>
+                   
+                        <button class="btn btn-primary mt-3" id="btnAccion" type="submit"></button>
+                
                     <button class="btn btn-danger mt-3" type="button" data-bs-dismiss="modal" onclick="cerrarFormArqueo(event);">Cancelar</button>
+                  
                 </form>
             </div>
         </div>

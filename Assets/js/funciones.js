@@ -3069,6 +3069,12 @@ function abrirArqueo(e){
             });
             frm.reset();
             $("#abrir_caja").modal("hide");
+
+            document.getElementById("botonesAbrirCerrarCaja").innerHTML = `
+            <button class="btn btn-danger mb-2 "  onclick="cerrarCaja(event);" type="button">Cerrar Caja</button>
+
+            `;
+
             tblArqueo.ajax.reload(null, false);
           }else if(res == "existe"){
             Swal.fire({
@@ -3087,8 +3093,16 @@ function abrirArqueo(e){
               title: "Caja cerrada con éxito",
               showConfirmButton: false,
             });
+
             frm.reset();
             $("#abrir_caja").modal("hide");
+
+
+            document.getElementById("botonesAbrirCerrarCaja").innerHTML = `
+            <button class="btn btn-primary mb-2 " data-bs-toggle="modal" data-bs-target="#abrir_caja" onclick="arqueoCaja(event);" type="button">Abrir Caja</button>
+
+            `;
+
             tblArqueo.ajax.reload(null, false);
           }else if(res == "errora"){
             Swal.fire({

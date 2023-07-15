@@ -32,8 +32,11 @@ class Cajas extends Controller
         }else{
         $id_user = $_SESSION["id_usuario"];
         $verificar = $this->model->verificarPermiso($id_user,'arqueo_caja');  
-        if(!empty($verificar) || $id_user == 1){
-            $this->views->getView($this, "arqueo");
+        if(!empty($verificar) || $id_user == 1){    
+            $idcaja = $_SESSION["id_caja"];
+            $data["data"] = $this->model->estadoCaja($idcaja);
+            $data["estado"] = $this->model->estadoCierreCaja($id_user);
+            $this->views->getView($this, "arqueo",$data);
         }else{
             
             header("location: ".constant("URL")."Errors/permisos");
@@ -213,6 +216,7 @@ class Cajas extends Controller
         }
         $fecha_apertura = date("Y-m-d");
         $id_usuario = $_SESSION["id_usuario"];
+        $id_caja = $_SESSION["id_caja"];
         $id = $_POST["id"];
             if ($id == "") {
                 if ($monto_inicial < 0) {
